@@ -13,7 +13,8 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
-	createCmd.PersistentFlags().IntVarP(&clusterSpec.Templates[0].Count, "--replicas", "r", 1, "Number of machine replicas to create")
+	replicas := &clusterSpec.Templates[0].Count
+	createCmd.PersistentFlags().IntVarP(replicas, "--replicas", "r", *replicas, "Number of machine replicas to create")
 	footloose.AddCommand(createCmd)
 }
 
