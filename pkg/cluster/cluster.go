@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dlespiau/footloose/pkg/config"
+	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/kind/pkg/docker"
 )
 
@@ -46,9 +47,10 @@ func (c *Cluster) forEachMachine(do func(*config.Machine, int) error) error {
 }
 
 func (c *Cluster) createMachine(machine *config.Machine, i int) error {
+	name := c.containerName(machine, i)
 	runArgs := []string{
 		"-it", "-d", "--rm",
-		"--name", c.containerName(machine, i),
+		"--name", name,
 		"--tmpfs", "/run",
 		"--tmpfs", "/tmp",
 		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
@@ -58,6 +60,7 @@ func (c *Cluster) createMachine(machine *config.Machine, i int) error {
 		runArgs = append(runArgs, "--privileged")
 	}
 
+	log.Infof("Creating machine: %s ...", name)
 	_, err := docker.Run(machine.Image,
 		runArgs,
 		[]string{"/sbin/init"},
