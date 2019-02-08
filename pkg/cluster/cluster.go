@@ -149,7 +149,9 @@ func (c *Cluster) Create() error {
 }
 
 func (c *Cluster) deleteMachine(machine *config.Machine, i int) error {
-	return docker.Kill("KILL", c.containerName(machine, i))
+	name := c.containerName(machine, i)
+	log.Infof("Deleting machine: %s ...", name)
+	return docker.Kill("KILL", name)
 }
 
 // Delete deletes the cluster.
