@@ -145,6 +145,11 @@ func (c *Cluster) Create() error {
 	if err := c.ensureSSHKey(); err != nil {
 		return err
 	}
+	for _, template := range c.spec.Machines {
+		if _, err := docker.PullIfNotPresent(template.Spec.Image, 2); err != nil {
+			return err
+		}
+	}
 	return c.forEachMachine(c.createMachine)
 }
 
