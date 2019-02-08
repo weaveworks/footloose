@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 
 	"github.com/dlespiau/footloose/pkg/cluster"
@@ -9,6 +11,7 @@ import (
 var sshCmd = &cobra.Command{
 	Use:   "ssh",
 	Short: "SSH into a machine",
+	Args:  validateArgs,
 	RunE:  ssh,
 }
 
@@ -27,4 +30,11 @@ func ssh(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	return cluster.SSH(args[0])
+}
+
+func validateArgs(cmd *cobra.Command, args []string) error {
+	if len(args) < 1 {
+		return errors.New("missing machine name argument")
+	}
+	return nil
 }
