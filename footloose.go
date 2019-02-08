@@ -7,7 +7,7 @@ import (
 )
 
 // Footloose is the default name of the footloose file.
-const Footloose = "Footloose"
+const Footloose = "footloose.yaml"
 
 var footloose = &cobra.Command{
 	Use:   "footloose",
