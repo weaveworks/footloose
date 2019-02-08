@@ -12,13 +12,19 @@ var createCmd = &cobra.Command{
 	RunE:  create,
 }
 
+var createOptions struct {
+	config string
+}
+
 func init() {
-	replicas := &clusterSpec.Templates[0].Count
-	createCmd.PersistentFlags().IntVarP(replicas, "--replicas", "r", *replicas, "Number of machine replicas to create")
+	createCmd.Flags().StringVarP(&createOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	footloose.AddCommand(createCmd)
 }
 
 func create(cmd *cobra.Command, args []string) error {
-	cluster := cluster.New(clusterSpec)
+	cluster, err := cluster.NewFromFile(createOptions.config)
+	if err != nil {
+		return err
+	}
 	return cluster.Create()
 }

@@ -6,7 +6,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var footloose = cobra.Command{
+// Footloose is the default name of the footloose file.
+const Footloose = "Footloose"
+
+var footloose = &cobra.Command{
 	Use:   "footloose",
 	Short: "footloose - Container Machines",
 }

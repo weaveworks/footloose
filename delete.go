@@ -12,11 +12,19 @@ var deleteCmd = &cobra.Command{
 	RunE:  delete,
 }
 
+var deleteOptions struct {
+	config string
+}
+
 func init() {
+	deleteCmd.Flags().StringVarP(&deleteOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	footloose.AddCommand(deleteCmd)
 }
 
 func delete(cmd *cobra.Command, args []string) error {
-	cluster := cluster.New(clusterSpec)
+	cluster, err := cluster.NewFromFile(deleteOptions.config)
+	if err != nil {
+		return err
+	}
 	return cluster.Delete()
 }

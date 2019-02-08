@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dlespiau/footloose/pkg/config"
+	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/kind/pkg/docker"
 	"sigs.k8s.io/kind/pkg/exec"
@@ -28,6 +29,27 @@ func New(cluster config.Cluster) *Cluster {
 	return &Cluster{
 		spec: cluster,
 	}
+}
+
+// NewFromFile creates a new Cluster from a YAML serialization of its
+// configuration.
+func NewFromFile(path string) (*Cluster, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	spec := config.Cluster{}
+	err = yaml.Unmarshal(data, &spec)
+	return New(spec), err
+}
+
+// Save writes the Cluster configure to a file.
+func (c *Cluster) Save(path string) error {
+	data, err := yaml.Marshal(c.spec)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, data, 0666)
 }
 
 func f(format string, args ...interface{}) string {
