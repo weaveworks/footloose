@@ -11,9 +11,9 @@ type Cluster struct {
 	// Name is the cluster name. Defaults to "cluster".
 	Name string
 
-	// SSHKey is the path to the private SSH key used to login in the cluster
+	// PrivateKey is the path to the private SSH key used to login into the cluster
 	// machines.
-	SSHKey string
+	PrivateKey string
 
 	// Templates describe the machines we want created for this cluster.
 	Templates []MachineReplicas

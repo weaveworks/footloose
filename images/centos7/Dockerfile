@@ -2,7 +2,7 @@ FROM centos:7
 
 ENV container docker
 
-RUN yum -y install sudo openssh-server && yum clean all
+RUN yum -y install sudo && yum clean all
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == \
 systemd-tmpfiles-setup.service ] || rm -f $i; done); \
@@ -14,5 +14,7 @@ rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
 rm -f /lib/systemd/system/basic.target.wants/*;\
 rm -f /lib/systemd/system/anaconda.target.wants/*;\
 rm -f /lib/systemd/system/*.wants/*update-utmp*;
+
+RUN yum -y install openssh-server && yum clean all
 
 CMD ["/bin/bash"]

@@ -8,7 +8,8 @@ var machineSpec = config.Machine{
 }
 
 var clusterSpec = config.Cluster{
-	Name: "cluster",
+	Name:       "cluster",
+	PrivateKey: "cluster-key",
 	Templates: []config.MachineReplicas{{
 		Spec:  machineSpec,
 		Count: 1,
