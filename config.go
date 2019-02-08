@@ -19,16 +19,16 @@ var configOptions struct {
 func init() {
 	configCmd.Flags().StringVarP(&configOptions.file, "config", "c", Footloose, "Cluster configuration file")
 
-	name := &defaultClusterSpec.Name
+	name := &defaultConfig.Cluster.Name
 	configCmd.PersistentFlags().StringVarP(name, "name", "n", *name, "Name of the cluster")
 
-	replicas := &defaultClusterSpec.Templates[0].Count
+	replicas := &defaultConfig.Machines[0].Count
 	configCmd.PersistentFlags().IntVarP(replicas, "replicas", "r", *replicas, "Number of machine replicas to config")
 
 	footloose.AddCommand(configCmd)
 }
 
 func handleConfig(cmd *cobra.Command, args []string) error {
-	cluster := cluster.New(defaultClusterSpec)
+	cluster := cluster.New(defaultConfig)
 	return cluster.Save(Footloose)
 }

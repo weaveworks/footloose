@@ -14,7 +14,12 @@ type Cluster struct {
 	// PrivateKey is the path to the private SSH key used to login into the cluster
 	// machines.
 	PrivateKey string `json:"privateKey"`
+}
 
-	// Templates describe the machines we want created for this cluster.
-	Templates []MachineReplicas `json:"templates"`
+// Config is the top level config object.
+type Config struct {
+	// Cluster describes cluster-wide configuration.
+	Cluster Cluster `json:"cluster"`
+	// Machines describe the machines we want created for this cluster.
+	Machines []MachineReplicas `json:"machines"`
 }

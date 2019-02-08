@@ -20,14 +20,14 @@ type Container struct {
 
 // Cluster is a running cluster.
 type Cluster struct {
-	spec config.Cluster
+	spec config.Config
 }
 
 // New creates a new cluster. It takes as input the description of the cluster
 // and its machines.
-func New(cluster config.Cluster) *Cluster {
+func New(conf config.Config) *Cluster {
 	return &Cluster{
-		spec: cluster,
+		spec: conf,
 	}
 }
 
@@ -38,7 +38,7 @@ func NewFromFile(path string) (*Cluster, error) {
 	if err != nil {
 		return nil, err
 	}
-	spec := config.Cluster{}
+	spec := config.Config{}
 	err = yaml.Unmarshal(data, &spec)
 	return New(spec), err
 }
@@ -58,11 +58,11 @@ func f(format string, args ...interface{}) string {
 
 func (c *Cluster) containerName(machine *config.Machine, i int) string {
 	format := "%s-" + machine.Name
-	return f(format, c.spec.Name, i)
+	return f(format, c.spec.Cluster.Name, i)
 }
 
 func (c *Cluster) forEachMachine(do func(*config.Machine, int) error) error {
-	for _, template := range c.spec.Templates {
+	for _, template := range c.spec.Machines {
 		for i := 0; i < template.Count; i++ {
 			if err := do(&template.Spec, i); err != nil {
 				return err
@@ -73,7 +73,7 @@ func (c *Cluster) forEachMachine(do func(*config.Machine, int) error) error {
 }
 
 func (c *Cluster) ensureSSHKey() error {
-	path := c.spec.PrivateKey
+	path := c.spec.Cluster.PrivateKey
 	if _, err := os.Stat(path); err == nil {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (c *Cluster) ensureSSHKey() error {
 		"ssh-keygen", "-q",
 		"-t", "rsa",
 		"-b", "4096",
-		"-C", f("%s@footloose.mail", c.spec.Name),
+		"-C", f("%s@footloose.mail", c.spec.Cluster.Name),
 		"-f", path,
 		"-N", "",
 	)
@@ -98,7 +98,7 @@ touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 `
 
 func (c *Cluster) publicKey() ([]byte, error) {
-	return ioutil.ReadFile(c.spec.PrivateKey + ".pub")
+	return ioutil.ReadFile(c.spec.Cluster.PrivateKey + ".pub")
 }
 
 func (c *Cluster) createMachine(machine *config.Machine, i int) error {
@@ -175,7 +175,7 @@ func containerIP(nameOrID string) (string, error) {
 
 // SSH logs into the name machine with SSH.
 func (c *Cluster) SSH(name string) error {
-	ip, err := containerIP(f("%s-%s", c.spec.Name, name))
+	ip, err := containerIP(f("%s-%s", c.spec.Cluster.Name, name))
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (c *Cluster) SSH(name string) error {
 		"ssh", "-q",
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
-		"-i", c.spec.PrivateKey,
+		"-i", c.spec.Cluster.PrivateKey,
 		f("%s@%s", "root", ip),
 	)
 	cmd.SetStdin(os.Stdin)
