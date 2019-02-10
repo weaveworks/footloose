@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/dlespiau/footloose.svg?branch=master)](https://travis-ci.com/dlespiau/footloose)
+
 # footloose
 
 `footloose` is a developer tool creating containers that look like virtual
