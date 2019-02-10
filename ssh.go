@@ -29,7 +29,7 @@ func ssh(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return cluster.SSH(args[0])
+	return cluster.SSH(args[0], args[1:]...)
 }
 
 func validateArgs(cmd *cobra.Command, args []string) error {
