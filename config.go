@@ -26,7 +26,7 @@ func init() {
 	configCmd.PersistentFlags().StringVarP(private, "key", "k", *private, "Name of the private and public key files")
 
 	replicas := &defaultConfig.Machines[0].Count
-	configCmd.PersistentFlags().IntVarP(replicas, "replicas", "r", *replicas, "Number of machine replicas to config")
+	configCmd.PersistentFlags().IntVarP(replicas, "replicas", "r", *replicas, "Number of machine replicas")
 
 	footloose.AddCommand(configCmd)
 }
