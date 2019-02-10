@@ -33,5 +33,5 @@ func init() {
 
 func handleConfig(cmd *cobra.Command, args []string) error {
 	cluster := cluster.New(defaultConfig)
-	return cluster.Save(Footloose)
+	return cluster.Save(configOptions.file)
 }
