@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - '1.11.x'
+
+services:
+  - docker
+
+matrix:
+  include:
+    - script:
+      - go test -v ./tests
