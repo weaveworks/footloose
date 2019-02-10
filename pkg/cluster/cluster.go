@@ -106,6 +106,7 @@ func (c *Cluster) createMachine(machine *config.Machine, i int) error {
 	runArgs := []string{
 		"-it", "-d", "--rm",
 		"--name", name,
+		"--hostname", f(machine.Name, i),
 		"--tmpfs", "/run",
 		"--tmpfs", "/tmp",
 		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
