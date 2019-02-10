@@ -2,9 +2,12 @@ package cluster
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
+	"time"
 
 	"github.com/dlespiau/footloose/pkg/config"
 	"github.com/ghodss/yaml"
@@ -179,6 +182,62 @@ func containerIP(nameOrID string) (string, error) {
 	return strings.Trim(output[0], "'"), nil
 }
 
+// io.Writer filter that writes that it receives to writer. Keeps track if it
+// has seen a write matching regexp.
+type matchFilter struct {
+	writer       io.Writer
+	writeMatched bool // whether the filter should write the matched value or not.
+
+	regexp  *regexp.Regexp
+	matched bool
+}
+
+func (f *matchFilter) Write(p []byte) (n int, err error) {
+	// Assume the relevant log line is flushed in one write.
+	if match := f.regexp.Match(p); match {
+		f.matched = true
+		if !f.writeMatched {
+			return len(p), nil
+		}
+	}
+	return f.writer.Write(p)
+}
+
+// Matches:
+//   ssh: connect to host 172.17.0.2 port 22: Connection refused
+var connectRefused = regexp.MustCompile("ssh: connect to host .* port [0-9]{1,5}: Connection refused")
+
+// Matches:
+//   Warning:Permanently added '172.17.0.2' (ECDSA) to the list of known hosts
+var knownHosts = regexp.MustCompile("Warning: Permanently added .* to the list of known hosts.")
+
+// ssh returns true if the command should be tried again.
+func ssh(args []string) (bool, error) {
+	cmd := exec.Command("ssh", args...)
+
+	refusedFilter := &matchFilter{
+		writer:       os.Stderr,
+		writeMatched: false,
+		regexp:       connectRefused,
+	}
+
+	errFilter := &matchFilter{
+		writer:       refusedFilter,
+		writeMatched: false,
+		regexp:       knownHosts,
+	}
+
+	cmd.SetStdin(os.Stdin)
+	cmd.SetStdout(os.Stdout)
+	cmd.SetStderr(errFilter)
+
+	err := cmd.Run()
+	if err != nil && refusedFilter.matched {
+		return true, err
+	}
+	return false, err
+}
+
 // SSH logs into the name machine with SSH.
 func (c *Cluster) SSH(name string, remoteArgs ...string) error {
 	ip, err := containerIP(f("%s-%s", c.spec.Cluster.Name, name))
@@ -186,15 +245,25 @@ func (c *Cluster) SSH(name string, remoteArgs ...string) error {
 		return err
 	}
 	args := []string{
-		"-q",
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
 		"-i", c.spec.Cluster.PrivateKey,
 		f("%s@%s", "root", ip),
 	}
 	args = append(args, remoteArgs...)
-	cmd := exec.Command("ssh", args...)
-	cmd.SetStdin(os.Stdin)
-	exec.InheritOutput(cmd)
-	return cmd.Run()
+	// If we ssh in a bit too quickly after the container creation, ssh errors out
+	// with:
+	//   ssh: connect to host 172.17.0.2 port 22: Connection refused
+	// Let's loop a few times if we receive this message.
+	retries := 3
+	var retry bool
+	for retries > 0 {
+		retry, err = ssh(args)
+		if !retry {
+			break
+		}
+		retries--
+		time.Sleep(200 * time.Millisecond)
+	}
+	return err
 }
