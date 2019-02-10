@@ -179,18 +179,20 @@ func containerIP(nameOrID string) (string, error) {
 }
 
 // SSH logs into the name machine with SSH.
-func (c *Cluster) SSH(name string) error {
+func (c *Cluster) SSH(name string, remoteArgs ...string) error {
 	ip, err := containerIP(f("%s-%s", c.spec.Cluster.Name, name))
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command(
-		"ssh", "-q",
+	args := []string{
+		"-q",
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
 		"-i", c.spec.Cluster.PrivateKey,
 		f("%s@%s", "root", ip),
-	)
+	}
+	args = append(args, remoteArgs...)
+	cmd := exec.Command("ssh", args...)
 	cmd.SetStdin(os.Stdin)
 	exec.InheritOutput(cmd)
 	return cmd.Run()
