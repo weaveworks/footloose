@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/dlespiau/footloose.svg?branch=master)](https://travis-ci.com/dlespiau/footloose)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dlespiau/footloose)](https://goreportcard.com/report/github.com/dlespiau/footloose)
 
 # footloose
 
