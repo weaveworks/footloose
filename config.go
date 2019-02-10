@@ -22,6 +22,9 @@ func init() {
 	name := &defaultConfig.Cluster.Name
 	configCmd.PersistentFlags().StringVarP(name, "name", "n", *name, "Name of the cluster")
 
+	private := &defaultConfig.Cluster.PrivateKey
+	configCmd.PersistentFlags().StringVarP(private, "key", "k", *private, "Name of the private and public key files")
+
 	replicas := &defaultConfig.Machines[0].Count
 	configCmd.PersistentFlags().IntVarP(replicas, "replicas", "r", *replicas, "Number of machine replicas to config")
 
