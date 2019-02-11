@@ -28,6 +28,9 @@ func init() {
 	replicas := &defaultConfig.Machines[0].Count
 	configCmd.PersistentFlags().IntVarP(replicas, "replicas", "r", *replicas, "Number of machine replicas")
 
+	privileged := &defaultConfig.Machines[0].Spec.Privileged
+	configCmd.PersistentFlags().BoolVar(privileged, "privileged", *privileged, "Create privileged containers")
+
 	footloose.AddCommand(configCmd)
 }
 
