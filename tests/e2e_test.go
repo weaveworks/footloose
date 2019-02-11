@@ -63,6 +63,10 @@ func (t *test) shouldSkip() bool {
 	return exists(t.file + ".skip")
 }
 
+func (t *test) isLong() bool {
+	return exists(t.file + ".long")
+}
+
 func (t *test) outputDir() string {
 	return t.file + ".got"
 }
@@ -196,6 +200,9 @@ func TestEndToEnd(t *testing.T) {
 	for _, file := range files {
 		test := newTest(file)
 		t.Run(test.name(), func(t *testing.T) {
+			if test.isLong() && testing.Short() {
+				t.Skip("Skipping long running test in short mode")
+			}
 			runTest(t, test)
 		})
 	}
