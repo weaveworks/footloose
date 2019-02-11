@@ -115,6 +115,18 @@ func (c *Cluster) createMachine(machine *config.Machine, i int) error {
 		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
+	for _, volume := range machine.Volumes {
+		mount := f("type=%s", volume.Type)
+		if volume.Source != "" {
+			mount += f(",src=%s", volume.Source)
+		}
+		mount += f(",dst=%s", volume.Destination)
+		if volume.ReadOnly {
+			mount += ",readonly"
+		}
+		runArgs = append(runArgs, "--mount", mount)
+	}
+
 	if machine.Privileged {
 		runArgs = append(runArgs, "--privileged")
 	}

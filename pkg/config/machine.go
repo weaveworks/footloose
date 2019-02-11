@@ -1,5 +1,21 @@
 package config
 
+// Volume is a volume that can be attached to a Machine.
+type Volume struct {
+	// Type is the volume type. One of "bind" or "volume".
+	Type string `json:"type"`
+	// Source is the volume source.
+	// With type=bind, the volume source is a directory or a file in the host
+	// filesystem.
+	// With type=volume, source is either the name of a docker volume or "" for
+	// anonymous volumes.
+	Source string `json:"source"`
+	// Destination is the mount point inside the container.
+	Destination string `json:"destination"`
+	// ReadOnly specifies if the volume should be read-only or not.
+	ReadOnly bool `json:"readOnly"`
+}
+
 // Machine is the machine configuration.
 type Machine struct {
 	// Name is the machine name. This is a format string with %d as the machine
@@ -12,4 +28,6 @@ type Machine struct {
 	// Privileged controls whether to start the Machine as a privileged container
 	// or not. Defaults to false.
 	Privileged bool `json:"privileged,omitempty"`
+	// Volumes is the list of volumes attached to this machine.
+	Volumes []Volume `json:"volumes,omitempty"`
 }
