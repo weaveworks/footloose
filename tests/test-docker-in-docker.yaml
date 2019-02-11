@@ -1,0 +1,12 @@
+cluster:
+  name: test-docker-in-docker
+  privateKey: test-docker-in-docker-key
+machines:
+- count: 1
+  spec:
+    volumes:
+    - type: volume
+      destination: /var/lib/docker
+    image: quay.io/footloose/centos7
+    name: node%d
+    privileged: true
