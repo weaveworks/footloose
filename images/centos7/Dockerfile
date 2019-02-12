@@ -17,4 +17,6 @@ rm -f /lib/systemd/system/*.wants/*update-utmp*;
 
 RUN yum -y install openssh-server && yum clean all
 
+EXPOSE 22
+
 CMD ["/bin/bash"]
