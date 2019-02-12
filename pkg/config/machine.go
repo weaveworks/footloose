@@ -16,6 +16,22 @@ type Volume struct {
 	ReadOnly bool `json:"readOnly"`
 }
 
+// PortMapping describes mapping a port from the machine onto the host.
+type PortMapping struct {
+	// Protocol is the layer 4 protocol for this mapping. One of "tcp" or "udp".
+	// Defaults to "tcp".
+	Protocol string `json:"protocol,omitempty"`
+	// Address is the host addres to bind to. Defaults to "0.0.0.0".
+	Address string `json:"address,omitempty"`
+	// HostPort is the base host port to map the containers ports to. As we
+	// configure a number of machine replicas, each machine will use LocalPort+i
+	// where i is between 0 and N, N the number of machine replicas.
+	// If 0, a local port will be automatically allocated.
+	HostPort uint16 `json:"hostPort,omitempty"`
+	// ContainerPort is the container port to map.
+	ContainerPort uint16 `json:"containerPort"`
+}
+
 // Machine is the machine configuration.
 type Machine struct {
 	// Name is the machine name. This is a format string with %d as the machine
@@ -30,4 +46,6 @@ type Machine struct {
 	Privileged bool `json:"privileged,omitempty"`
 	// Volumes is the list of volumes attached to this machine.
 	Volumes []Volume `json:"volumes,omitempty"`
+	// PortMappings is the list of ports to expose to the host.
+	PortMappings []PortMapping `json:"portMappings,omitempty"`
 }

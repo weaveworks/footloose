@@ -137,6 +137,21 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 		runArgs = append(runArgs, "--mount", mount)
 	}
 
+	for _, mapping := range machine.spec.PortMappings {
+		publish := ""
+		if mapping.Address != "" {
+			publish += f("%s:", mapping.Address)
+		}
+		publish += f("%d", mapping.ContainerPort)
+		if mapping.HostPort != 0 {
+			publish += f(":%d", int(mapping.HostPort)+i)
+		}
+		if mapping.Protocol != "" {
+			publish += f("/%s", mapping.Protocol)
+		}
+		runArgs = append(runArgs, "-p", publish)
+	}
+
 	if machine.spec.Privileged {
 		runArgs = append(runArgs, "--privileged")
 	}
