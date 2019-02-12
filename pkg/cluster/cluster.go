@@ -231,7 +231,7 @@ var connectRefused = regexp.MustCompile("^ssh_exchange_identification: ")
 
 // Matches:
 //   Warning:Permanently added '172.17.0.2' (ECDSA) to the list of known hosts
-var knownHosts = regexp.MustCompile("Warning: Permanently added .* to the list of known hosts.")
+var knownHosts = regexp.MustCompile("^Warning: Permanently added .* to the list of known hosts.")
 
 // ssh returns true if the command should be tried again.
 func ssh(args []string) (bool, error) {
