@@ -9,8 +9,10 @@ import (
 const Footloose = "footloose.yaml"
 
 var footloose = &cobra.Command{
-	Use:   "footloose",
-	Short: "footloose - Container Machines",
+	Use:           "footloose",
+	Short:         "footloose - Container Machines",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }
 
 func main() {
