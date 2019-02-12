@@ -226,8 +226,8 @@ func (f *matchFilter) Write(p []byte) (n int, err error) {
 }
 
 // Matches:
-//   ssh: connect to host 172.17.0.2 port 22: Connection refused
-var connectRefused = regexp.MustCompile("ssh: connect to host .* port [0-9]{1,5}: Connection refused")
+//   ssh_exchange_identification: read: Connection reset by peer
+var connectRefused = regexp.MustCompile("^ssh_exchange_identification: ")
 
 // Matches:
 //   Warning:Permanently added '172.17.0.2' (ECDSA) to the list of known hosts
@@ -308,7 +308,7 @@ func (c *Cluster) SSH(name string, remoteArgs ...string) error {
 	args = append(args, remoteArgs...)
 	// If we ssh in a bit too quickly after the container creation, ssh errors out
 	// with:
-	//   ssh: connect to host 172.17.0.2 port 22: Connection refused
+	//   ssh_exchange_identification: read: Connection reset by peer
 	// Let's loop a few times if we receive this message.
 	retries := 3
 	var retry bool
