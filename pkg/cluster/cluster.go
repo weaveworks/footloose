@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/dlespiau/footloose/pkg/config"
@@ -205,20 +204,6 @@ func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
 }
 
-func containerIP(nameOrID string) (string, error) {
-	output, err := docker.Inspect(nameOrID, "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}")
-	if err != nil {
-		for _, line := range output {
-			log.Error(line)
-		}
-		return "", err
-	}
-	if len(output) != 1 {
-		return "", fmt.Errorf("expected 1 IP for %s got %d", nameOrID, len(output))
-	}
-	return strings.Trim(output[0], "'"), nil
-}
-
 // io.Writer filter that writes that it receives to writer. Keeps track if it
 // has seen a write matching regexp.
 type matchFilter struct {
@@ -275,17 +260,50 @@ func ssh(args []string) (bool, error) {
 	return false, err
 }
 
+func (c *Cluster) machineFromHostname(hostname string) (*Machine, error) {
+	for _, template := range c.spec.Machines {
+		for i := 0; i < template.Count; i++ {
+			if hostname == f(template.Spec.Name, i) {
+				return c.machine(&template.Spec, i), nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("%s: invalid machine hostname", hostname)
+}
+
+func mappingFromPort(spec *config.Machine, containerPort int) (*config.PortMapping, error) {
+	for i := range spec.PortMappings {
+		if int(spec.PortMappings[i].ContainerPort) == containerPort {
+			return &spec.PortMappings[i], nil
+		}
+	}
+	return nil, fmt.Errorf("unknown containerPort %d", containerPort)
+}
+
 // SSH logs into the name machine with SSH.
 func (c *Cluster) SSH(name string, remoteArgs ...string) error {
-	ip, err := containerIP(f("%s-%s", c.spec.Cluster.Name, name))
+	machine, err := c.machineFromHostname(name)
 	if err != nil {
 		return err
+	}
+	hostPort, err := machine.HostPort(22)
+	if err != nil {
+		return err
+	}
+	mapping, err := mappingFromPort(machine.spec, 22)
+	if err != nil {
+		return err
+	}
+	remote := "localhost"
+	if mapping.Address != "" {
+		remote = mapping.Address
 	}
 	args := []string{
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
 		"-i", c.spec.Cluster.PrivateKey,
-		f("%s@%s", "root", ip),
+		"-p", f("%d", hostPort),
+		f("%s@%s", "root", remote),
 	}
 	args = append(args, remoteArgs...)
 	// If we ssh in a bit too quickly after the container creation, ssh errors out
