@@ -12,6 +12,9 @@ var defaultConfig = config.Config{
 		Spec: config.Machine{
 			Name:  "node%d",
 			Image: "quay.io/footloose/centos7",
+			PortMappings: []config.PortMapping{{
+				ContainerPort: 22,
+			}},
 		},
 	}},
 }

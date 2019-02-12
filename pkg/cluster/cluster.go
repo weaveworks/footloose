@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/dlespiau/footloose/pkg/config"
@@ -64,10 +63,20 @@ func (c *Cluster) containerName(machine *config.Machine, i int) string {
 	return f(format, c.spec.Cluster.Name, i)
 }
 
-func (c *Cluster) forEachMachine(do func(*config.Machine, int) error) error {
+func (c *Cluster) machine(spec *config.Machine, i int) *Machine {
+	return &Machine{
+		spec:     spec,
+		name:     c.containerName(spec, i),
+		hostname: f(spec.Name, i),
+	}
+
+}
+
+func (c *Cluster) forEachMachine(do func(*Machine, int) error) error {
 	for _, template := range c.spec.Machines {
 		for i := 0; i < template.Count; i++ {
-			if err := do(&template.Spec, i); err != nil {
+			machine := c.machine(&template.Spec, i)
+			if err := do(machine, i); err != nil {
 				return err
 			}
 		}
@@ -104,18 +113,18 @@ func (c *Cluster) publicKey() ([]byte, error) {
 	return ioutil.ReadFile(c.spec.Cluster.PrivateKey + ".pub")
 }
 
-func (c *Cluster) createMachine(machine *config.Machine, i int) error {
-	name := c.containerName(machine, i)
+func (c *Cluster) createMachine(machine *Machine, i int) error {
+	name := machine.ContainerName()
 	runArgs := []string{
 		"-it", "-d", "--rm",
 		"--name", name,
-		"--hostname", f(machine.Name, i),
+		"--hostname", machine.Hostname(),
 		"--tmpfs", "/run",
 		"--tmpfs", "/tmp",
 		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
-	for _, volume := range machine.Volumes {
+	for _, volume := range machine.spec.Volumes {
 		mount := f("type=%s", volume.Type)
 		if volume.Source != "" {
 			mount += f(",src=%s", volume.Source)
@@ -127,13 +136,28 @@ func (c *Cluster) createMachine(machine *config.Machine, i int) error {
 		runArgs = append(runArgs, "--mount", mount)
 	}
 
-	if machine.Privileged {
+	for _, mapping := range machine.spec.PortMappings {
+		publish := ""
+		if mapping.Address != "" {
+			publish += f("%s:", mapping.Address)
+		}
+		publish += f("%d", mapping.ContainerPort)
+		if mapping.HostPort != 0 {
+			publish += f(":%d", int(mapping.HostPort)+i)
+		}
+		if mapping.Protocol != "" {
+			publish += f("/%s", mapping.Protocol)
+		}
+		runArgs = append(runArgs, "-p", publish)
+	}
+
+	if machine.spec.Privileged {
 		runArgs = append(runArgs, "--privileged")
 	}
 
 	// Start the container.
 	log.Infof("Creating machine: %s ...", name)
-	_, err := docker.Run(machine.Image,
+	_, err := docker.Run(machine.spec.Image,
 		runArgs,
 		[]string{"/sbin/init"},
 	)
@@ -169,8 +193,8 @@ func (c *Cluster) Create() error {
 	return c.forEachMachine(c.createMachine)
 }
 
-func (c *Cluster) deleteMachine(machine *config.Machine, i int) error {
-	name := c.containerName(machine, i)
+func (c *Cluster) deleteMachine(machine *Machine, i int) error {
+	name := machine.ContainerName()
 	log.Infof("Deleting machine: %s ...", name)
 	return docker.Kill("KILL", name)
 }
@@ -178,20 +202,6 @@ func (c *Cluster) deleteMachine(machine *config.Machine, i int) error {
 // Delete deletes the cluster.
 func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
-}
-
-func containerIP(nameOrID string) (string, error) {
-	output, err := docker.Inspect(nameOrID, "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}")
-	if err != nil {
-		for _, line := range output {
-			log.Error(line)
-		}
-		return "", err
-	}
-	if len(output) != 1 {
-		return "", fmt.Errorf("expected 1 IP for %s got %d", nameOrID, len(output))
-	}
-	return strings.Trim(output[0], "'"), nil
 }
 
 // io.Writer filter that writes that it receives to writer. Keeps track if it
@@ -216,12 +226,12 @@ func (f *matchFilter) Write(p []byte) (n int, err error) {
 }
 
 // Matches:
-//   ssh: connect to host 172.17.0.2 port 22: Connection refused
-var connectRefused = regexp.MustCompile("ssh: connect to host .* port [0-9]{1,5}: Connection refused")
+//   ssh_exchange_identification: read: Connection reset by peer
+var connectRefused = regexp.MustCompile("^ssh_exchange_identification: ")
 
 // Matches:
 //   Warning:Permanently added '172.17.0.2' (ECDSA) to the list of known hosts
-var knownHosts = regexp.MustCompile("Warning: Permanently added .* to the list of known hosts.")
+var knownHosts = regexp.MustCompile("^Warning: Permanently added .* to the list of known hosts.")
 
 // ssh returns true if the command should be tried again.
 func ssh(args []string) (bool, error) {
@@ -250,22 +260,55 @@ func ssh(args []string) (bool, error) {
 	return false, err
 }
 
+func (c *Cluster) machineFromHostname(hostname string) (*Machine, error) {
+	for _, template := range c.spec.Machines {
+		for i := 0; i < template.Count; i++ {
+			if hostname == f(template.Spec.Name, i) {
+				return c.machine(&template.Spec, i), nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("%s: invalid machine hostname", hostname)
+}
+
+func mappingFromPort(spec *config.Machine, containerPort int) (*config.PortMapping, error) {
+	for i := range spec.PortMappings {
+		if int(spec.PortMappings[i].ContainerPort) == containerPort {
+			return &spec.PortMappings[i], nil
+		}
+	}
+	return nil, fmt.Errorf("unknown containerPort %d", containerPort)
+}
+
 // SSH logs into the name machine with SSH.
 func (c *Cluster) SSH(name string, remoteArgs ...string) error {
-	ip, err := containerIP(f("%s-%s", c.spec.Cluster.Name, name))
+	machine, err := c.machineFromHostname(name)
 	if err != nil {
 		return err
+	}
+	hostPort, err := machine.HostPort(22)
+	if err != nil {
+		return err
+	}
+	mapping, err := mappingFromPort(machine.spec, 22)
+	if err != nil {
+		return err
+	}
+	remote := "localhost"
+	if mapping.Address != "" {
+		remote = mapping.Address
 	}
 	args := []string{
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
 		"-i", c.spec.Cluster.PrivateKey,
-		f("%s@%s", "root", ip),
+		"-p", f("%d", hostPort),
+		f("%s@%s", "root", remote),
 	}
 	args = append(args, remoteArgs...)
 	// If we ssh in a bit too quickly after the container creation, ssh errors out
 	// with:
-	//   ssh: connect to host 172.17.0.2 port 22: Connection refused
+	//   ssh_exchange_identification: read: Connection reset by peer
 	// Let's loop a few times if we receive this message.
 	retries := 3
 	var retry bool
