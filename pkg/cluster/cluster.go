@@ -64,10 +64,20 @@ func (c *Cluster) containerName(machine *config.Machine, i int) string {
 	return f(format, c.spec.Cluster.Name, i)
 }
 
-func (c *Cluster) forEachMachine(do func(*config.Machine, int) error) error {
+func (c *Cluster) machine(spec *config.Machine, i int) *Machine {
+	return &Machine{
+		spec:     spec,
+		name:     c.containerName(spec, i),
+		hostname: f(spec.Name, i),
+	}
+
+}
+
+func (c *Cluster) forEachMachine(do func(*Machine, int) error) error {
 	for _, template := range c.spec.Machines {
 		for i := 0; i < template.Count; i++ {
-			if err := do(&template.Spec, i); err != nil {
+			machine := c.machine(&template.Spec, i)
+			if err := do(machine, i); err != nil {
 				return err
 			}
 		}
@@ -104,18 +114,18 @@ func (c *Cluster) publicKey() ([]byte, error) {
 	return ioutil.ReadFile(c.spec.Cluster.PrivateKey + ".pub")
 }
 
-func (c *Cluster) createMachine(machine *config.Machine, i int) error {
-	name := c.containerName(machine, i)
+func (c *Cluster) createMachine(machine *Machine, i int) error {
+	name := machine.ContainerName()
 	runArgs := []string{
 		"-it", "-d", "--rm",
 		"--name", name,
-		"--hostname", f(machine.Name, i),
+		"--hostname", machine.Hostname(),
 		"--tmpfs", "/run",
 		"--tmpfs", "/tmp",
 		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
-	for _, volume := range machine.Volumes {
+	for _, volume := range machine.spec.Volumes {
 		mount := f("type=%s", volume.Type)
 		if volume.Source != "" {
 			mount += f(",src=%s", volume.Source)
@@ -127,13 +137,13 @@ func (c *Cluster) createMachine(machine *config.Machine, i int) error {
 		runArgs = append(runArgs, "--mount", mount)
 	}
 
-	if machine.Privileged {
+	if machine.spec.Privileged {
 		runArgs = append(runArgs, "--privileged")
 	}
 
 	// Start the container.
 	log.Infof("Creating machine: %s ...", name)
-	_, err := docker.Run(machine.Image,
+	_, err := docker.Run(machine.spec.Image,
 		runArgs,
 		[]string{"/sbin/init"},
 	)
@@ -169,8 +179,8 @@ func (c *Cluster) Create() error {
 	return c.forEachMachine(c.createMachine)
 }
 
-func (c *Cluster) deleteMachine(machine *config.Machine, i int) error {
-	name := c.containerName(machine, i)
+func (c *Cluster) deleteMachine(machine *Machine, i int) error {
+	name := machine.ContainerName()
 	log.Infof("Deleting machine: %s ...", name)
 	return docker.Kill("KILL", name)
 }
