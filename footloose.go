@@ -1,8 +1,7 @@
 package main
 
 import (
-	"os"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +15,6 @@ var footloose = &cobra.Command{
 
 func main() {
 	if err := footloose.Execute(); err != nil {
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
