@@ -9,4 +9,6 @@ machines:
       destination: /var/lib/docker
     image: quay.io/footloose/centos7
     name: node%d
+    portMappings:
+    - containerPort: 22
     privileged: true
