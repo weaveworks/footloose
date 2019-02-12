@@ -35,7 +35,7 @@ initial config file:
 ```console
 # Create a Footloose config file. Instruct we want to create 3 machines instead
 # of the default, 1.
-footloose config --replicas 3
+footloose config create --replicas 3
 ```
 
 Start the cluster of 3 machines:
@@ -69,13 +69,13 @@ $ footloose ssh node1
 
 ## `footloose.yaml`
 
-`footloose config` creates a `footloose.yaml` configuration file that is then
+`footloose config create` creates a `footloose.yaml` configuration file that is then
 used by subsequent commands such as `create`, `delete` or `ssh`. If desired,
 the configuration file can be named differently and supplied with the
 `-c, --config` option.
 
 ```console
-$ footloose config --replicas 3
+$ footloose config create --replicas 3
 $ cat footloose.yaml
 cluster:
   name: cluster
