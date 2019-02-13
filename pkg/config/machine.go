@@ -24,9 +24,9 @@ type PortMapping struct {
 	// Address is the host addres to bind to. Defaults to "0.0.0.0".
 	Address string `json:"address,omitempty"`
 	// HostPort is the base host port to map the containers ports to. As we
-	// configure a number of machine replicas, each machine will use LocalPort+i
-	// where i is between 0 and N, N the number of machine replicas.
-	// If 0, a local port will be automatically allocated.
+	// configure a number of machine replicas, each machine will use HostPort+i
+	// where i is between 0 and N-1, N being the number of machine replicas. If 0,
+	// a local port will be automatically allocated.
 	HostPort uint16 `json:"hostPort,omitempty"`
 	// ContainerPort is the container port to map.
 	ContainerPort uint16 `json:"containerPort"`
