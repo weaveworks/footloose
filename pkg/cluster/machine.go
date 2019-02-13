@@ -3,6 +3,7 @@ package cluster
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/dlespiau/footloose/pkg/config"
 	"github.com/pkg/errors"
@@ -56,7 +57,8 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 		m.ports = make(map[int]int)
 	}
 
-	m.ports[containerPort], err = strconv.Atoi(lines[0])
+	port := strings.Replace(lines[0], "'", "", -1)
+	m.ports[containerPort], err = strconv.Atoi(port)
 	if err != nil {
 		return -1, errors.Wrap(err, "hostport: failed to parse string to int")
 	}
