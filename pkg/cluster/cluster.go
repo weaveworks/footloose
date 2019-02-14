@@ -33,16 +33,22 @@ func New(conf config.Config) *Cluster {
 	}
 }
 
+// NewFromYAML creates a new Cluster from a YAML serialization of its
+// configuration available in the provided string.
+func NewFromYAML(data []byte) (*Cluster, error) {
+	spec := config.Config{}
+	err := yaml.Unmarshal(data, &spec)
+	return New(spec), err
+}
+
 // NewFromFile creates a new Cluster from a YAML serialization of its
-// configuration.
+// configuration available in the provided file.
 func NewFromFile(path string) (*Cluster, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	spec := config.Config{}
-	err = yaml.Unmarshal(data, &spec)
-	return New(spec), err
+	return NewFromYAML(data)
 }
 
 // Save writes the Cluster configure to a file.
