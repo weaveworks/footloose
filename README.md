@@ -85,6 +85,8 @@ machines:
   spec:
     image: quay.io/footloose/centos7
     name: node%d
+    portMappings:
+    - containerPort: 22
 ```
 
 This configuration can naturally be edited by hand. The full list of
@@ -113,12 +115,14 @@ cluster:
 machines:
 - count: 1
   spec:
+    image: quay.io/footloose/centos7
+    name: node%d
+    portMappings:
+    - containerPort: 22
+    privileged: true
     volumes:
     - type: volume
       destination: /var/lib/docker
-    image: quay.io/footloose/centos7
-    name: node%d
-    privileged: true
 ```
 
 You can then install and run docker on the machine:
