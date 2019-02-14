@@ -8,5 +8,10 @@ services:
 
 matrix:
   include:
-    - script:
+    - os: linux
+      script:
+      - go test -v ./tests
+
+    - os: osx
+      script:
       - go test -v ./tests
