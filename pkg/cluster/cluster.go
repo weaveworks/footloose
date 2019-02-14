@@ -175,10 +175,10 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 		if mapping.Address != "" {
 			publish += f("%s:", mapping.Address)
 		}
-		publish += f("%d", mapping.ContainerPort)
 		if mapping.HostPort != 0 {
-			publish += f(":%d", int(mapping.HostPort)+i)
+			publish += f("%d:", int(mapping.HostPort)+i)
 		}
+		publish += f("%d", mapping.ContainerPort)
 		if mapping.Protocol != "" {
 			publish += f("/%s", mapping.Protocol)
 		}
