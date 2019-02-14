@@ -121,6 +121,34 @@ func (c *Cluster) publicKey() ([]byte, error) {
 
 func (c *Cluster) createMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
+	runArgs := c.createMachineRunArgs(machine, name, i)
+
+	// Start the container.
+	log.Infof("Creating machine: %s ...", name)
+	_, err := docker.Run(machine.spec.Image,
+		runArgs,
+		[]string{"/sbin/init"},
+	)
+	if err != nil {
+		return err
+	}
+
+	// Initial provisioning.
+	if err := containerRunShell(name, initScript); err != nil {
+		return err
+	}
+	publicKey, err := c.publicKey()
+	if err != nil {
+		return err
+	}
+	if err := copy(name, publicKey, "/root/.ssh/authorized_keys"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []string {
 	runArgs := []string{
 		"-it", "-d", "--rm",
 		"--name", name,
@@ -161,29 +189,7 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 		runArgs = append(runArgs, "--privileged")
 	}
 
-	// Start the container.
-	log.Infof("Creating machine: %s ...", name)
-	_, err := docker.Run(machine.spec.Image,
-		runArgs,
-		[]string{"/sbin/init"},
-	)
-	if err != nil {
-		return err
-	}
-
-	// Initial provisioning.
-	if err := containerRunShell(name, initScript); err != nil {
-		return err
-	}
-	publicKey, err := c.publicKey()
-	if err != nil {
-		return err
-	}
-	if err := copy(name, publicKey, "/root/.ssh/authorized_keys"); err != nil {
-		return err
-	}
-
-	return nil
+	return runArgs
 }
 
 // Create creates the cluster.
