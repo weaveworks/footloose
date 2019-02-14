@@ -33,16 +33,22 @@ func New(conf config.Config) *Cluster {
 	}
 }
 
+// NewFromYAML creates a new Cluster from a YAML serialization of its
+// configuration available in the provided string.
+func NewFromYAML(data []byte) (*Cluster, error) {
+	spec := config.Config{}
+	err := yaml.Unmarshal(data, &spec)
+	return New(spec), err
+}
+
 // NewFromFile creates a new Cluster from a YAML serialization of its
-// configuration.
+// configuration available in the provided file.
 func NewFromFile(path string) (*Cluster, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	spec := config.Config{}
-	err = yaml.Unmarshal(data, &spec)
-	return New(spec), err
+	return NewFromYAML(data)
 }
 
 // Save writes the Cluster configure to a file.
@@ -115,6 +121,34 @@ func (c *Cluster) publicKey() ([]byte, error) {
 
 func (c *Cluster) createMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
+	runArgs := c.createMachineRunArgs(machine, name, i)
+
+	// Start the container.
+	log.Infof("Creating machine: %s ...", name)
+	_, err := docker.Run(machine.spec.Image,
+		runArgs,
+		[]string{"/sbin/init"},
+	)
+	if err != nil {
+		return err
+	}
+
+	// Initial provisioning.
+	if err := containerRunShell(name, initScript); err != nil {
+		return err
+	}
+	publicKey, err := c.publicKey()
+	if err != nil {
+		return err
+	}
+	if err := copy(name, publicKey, "/root/.ssh/authorized_keys"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []string {
 	runArgs := []string{
 		"-it", "-d", "--rm",
 		"--name", name,
@@ -141,10 +175,10 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 		if mapping.Address != "" {
 			publish += f("%s:", mapping.Address)
 		}
-		publish += f("%d", mapping.ContainerPort)
 		if mapping.HostPort != 0 {
-			publish += f(":%d", int(mapping.HostPort)+i)
+			publish += f("%d:", int(mapping.HostPort)+i)
 		}
+		publish += f("%d", mapping.ContainerPort)
 		if mapping.Protocol != "" {
 			publish += f("/%s", mapping.Protocol)
 		}
@@ -155,29 +189,7 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 		runArgs = append(runArgs, "--privileged")
 	}
 
-	// Start the container.
-	log.Infof("Creating machine: %s ...", name)
-	_, err := docker.Run(machine.spec.Image,
-		runArgs,
-		[]string{"/sbin/init"},
-	)
-	if err != nil {
-		return err
-	}
-
-	// Initial provisioning.
-	if err := containerRunShell(name, initScript); err != nil {
-		return err
-	}
-	publicKey, err := c.publicKey()
-	if err != nil {
-		return err
-	}
-	if err := copy(name, publicKey, "/root/.ssh/authorized_keys"); err != nil {
-		return err
-	}
-
-	return nil
+	return runArgs
 }
 
 // Create creates the cluster.
