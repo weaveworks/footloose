@@ -2,6 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"os/user"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -29,7 +32,24 @@ func ssh(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return cluster.SSH(args[0], args[1:]...)
+	var node string
+	var username string
+	if strings.Contains(args[0], "@") {
+		items := strings.Split(args[0], "@")
+		if len(items) != 2 {
+			return fmt.Errorf("bad syntax for user@node: %v", items)
+		}
+		username = items[0]
+		node = items[1]
+	} else {
+		node = args[0]
+		user, err := user.Current()
+		if err != nil {
+			return errors.New("error in getting current user")
+		}
+		username = user.Username
+	}
+	return cluster.SSH(node, username, args[1:]...)
 }
 
 func validateArgs(cmd *cobra.Command, args []string) error {

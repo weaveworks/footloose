@@ -1,0 +1,10 @@
+cluster:
+  name: test-create-delete
+  privateKey: test-create-delete-key
+machines:
+- count: 1
+  spec:
+    image: quay.io/footloose/centos7
+    name: node%d
+    portMappings:
+    - containerPort: 22
