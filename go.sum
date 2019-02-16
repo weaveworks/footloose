@@ -103,6 +103,8 @@ k8s.io/gengo v0.0.0-20181113154421-fd15ee9cc2f7/go.mod h1:ezvh/TsK7cY6rbqRK0oQQ8
 k8s.io/klog v0.1.0/go.mod h1:Gq+BEi5rUBO/HRz0bTSXDUcqjScdoY3a9IHpCEIOOfk=
 k8s.io/kube-openapi v0.0.0-20181025202442-3a9b63ab1e39/go.mod h1:BXM9ceUBTj2QnfH2MK1odQs778ajze1RxcmP6S8RVVc=
 k8s.io/utils v0.0.0-20181115163542-0d26856f57b3/go.mod h1:8k8uAuAQ0rXslZKaEWd0c3oVhZz7sSzSiPnVZayjIX0=
+sigs.k8s.io/kind v0.0.0-20190204012257-d1773a79317d h1:1VZmE/ys6JxyHl2d+Xlc9rqlChLiJgW1j2ofHSPv69w=
+sigs.k8s.io/kind v0.0.0-20190204012257-d1773a79317d/go.mod h1:4luVoV3UfY4B4ZNzvRPdM0egGo9zqFn/drRXqYPw9Ig=
 sigs.k8s.io/kind v0.0.0-20190215042635-27c563afc743 h1:swXgg9bArpwAiHHYBNNwhoTIT/VTk/+gO3qbHrcaKR8=
 sigs.k8s.io/kind v0.0.0-20190215042635-27c563afc743/go.mod h1:gO2AEFeSGWQJVcEskZKyS1MPZyRiZB+44hoRr9xW4X0=
 sigs.k8s.io/kustomize v0.0.0-20181026181014-6a917c5f363c/go.mod h1:MkjgH3RdOWrievjo6c9T245dYlB5QeXV4WCbnt/PEpU=
