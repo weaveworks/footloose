@@ -55,7 +55,7 @@ will take a tiny bit longer.
 SSH into a machine with:
 
 ```console
-$ footloose ssh node1
+$ footloose ssh root@node1
 [root@1665288855f6 ~]# ps fx
   PID TTY      STAT   TIME COMMAND
     1 ?        Ss     0:00 /sbin/init
@@ -129,7 +129,7 @@ You can then install and run docker on the machine:
 
 ```console
 $ footloose create
-$ footloose ssh node0
+$ footloose ssh root@node0
 # yum install -y docker iptables
 [...]
 # systemctl start docker

@@ -293,8 +293,8 @@ func mappingFromPort(spec *config.Machine, containerPort int) (*config.PortMappi
 }
 
 // SSH logs into the name machine with SSH.
-func (c *Cluster) SSH(name string, remoteArgs ...string) error {
-	machine, err := c.machineFromHostname(name)
+func (c *Cluster) SSH(nodename string, username string, remoteArgs ...string) error {
+	machine, err := c.machineFromHostname(nodename)
 	if err != nil {
 		return err
 	}
@@ -315,7 +315,8 @@ func (c *Cluster) SSH(name string, remoteArgs ...string) error {
 		"-o", "StrictHostKeyChecking=no",
 		"-i", c.spec.Cluster.PrivateKey,
 		"-p", f("%d", hostPort),
-		f("%s@%s", "root", remote),
+		"-l", username,
+		remote,
 	}
 	args = append(args, remoteArgs...)
 	// If we ssh in a bit too quickly after the container creation, ssh errors out
