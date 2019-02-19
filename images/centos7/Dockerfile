@@ -19,4 +19,7 @@ RUN yum -y install openssh-server && yum clean all
 
 EXPOSE 22
 
+# https://www.freedesktop.org/wiki/Software/systemd/ContainerInterface/
+STOPSIGNAL SIGRTMIN+3
+
 CMD ["/bin/bash"]
