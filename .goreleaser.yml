@@ -1,0 +1,24 @@
+before:
+  hooks:
+    - go mod download
+builds:
+- env:
+  - CGO_ENABLED=0
+archive:
+  format: binary
+  name_template: "footloose-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+  replacements:
+    386: i386
+    amd64: x86_64
+  files:
+    - none*
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
