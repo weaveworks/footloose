@@ -20,11 +20,28 @@ with containers.
 
 ## Install
 
-`footloose` hasn't reached a first version yet but you can install it from sources:
+`footloose` binaries can be downloaded from the [release page][gh-release]:
+
+```
+# For Linux
+curl -Lo footloose https://github.com/dlespiau/footloose/releases/download/0.1.0/footloose-0.1.0-linux-x86_64
+chmod +x footloose
+sudo mv footloose /usr/local/bin/
+
+# For macOS
+curl -Lo footloose https://github.com/dlespiau/footloose/releases/download/0.1.0/footloose-0.1.0-darwin-x86_64
+chmod +x footloose
+sudo mv footloose /usr/local/bin/
+```
+
+Alternatively, build and install `footloose` from sources. It requires having
+`go >= 1.11` installed:
 
 ```
 go get github.com/dlespiau/footloose
 ```
+
+[gh-release]: https://github.com/dlespiau/footloose/releases
 
 ## Usage
 
