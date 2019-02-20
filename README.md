@@ -7,7 +7,7 @@
 `footloose` is a developer tool creating containers that look like virtual
 machines. Those containers run `systemd` as PID 1 and a ssh daemon that can
 be used to login into the container. Such "machines" behave very much like a
-VM, it's even possible to run `dockerd` in them :)
+VM, it's even possible to run [`dockerd` in them][readme-did] :)
 
 `footloose` in action:
 
@@ -17,6 +17,8 @@ VM, it's even possible to run `dockerd` in them :)
 machines but don't want to wait for them to boot or need many of them. An
 easy way to think about it is: [Vagrant](https://www.vagrantup.com/), but
 with containers.
+
+[readme-did]: https://github.com/dlespiau/footloose#running-dockerd-in-container-machines
 
 ## Install
 
