@@ -1,0 +1,9 @@
+version: 2
+
+jobs:
+  tests-linux:
+    machine:
+      image: circleci/golang:1.11
+    steps:
+      - checkout
+      - go test -v ./tests
