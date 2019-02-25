@@ -24,7 +24,7 @@ with containers.
 
 `footloose` binaries can be downloaded from the [release page][gh-release]:
 
-```
+```console
 # For Linux
 curl -Lo footloose https://github.com/dlespiau/footloose/releases/download/0.1.0/footloose-0.1.0-linux-x86_64
 chmod +x footloose
@@ -39,7 +39,7 @@ sudo mv footloose /usr/local/bin/
 Alternatively, build and install `footloose` from sources. It requires having
 `go >= 1.11` installed:
 
-```
+```console
 go get github.com/dlespiau/footloose
 ```
 
@@ -84,6 +84,21 @@ $ footloose ssh root@node1
    63 pts/1    Ss     0:00      \_ -bash
    82 pts/1    R+     0:00          \_ ps fx
    62 ?        Ss     0:00 /usr/lib/systemd/systemd-logind
+```
+
+## Choosing the OS image to run
+
+`footloose` will default to running a centos 7 container image. The `--image`
+argument of `config create` can be used to configure the OS image. Valid OS
+images are:
+
+- `quay.io/footloose/centos7`
+- `quay.io/footloose/fedora29`
+
+For example:
+
+```console
+footloose config create --replicas 3 --image quay.io/footloose/fedora29
 ```
 
 ## `footloose.yaml`

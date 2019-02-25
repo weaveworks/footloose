@@ -28,6 +28,9 @@ func init() {
 	replicas := &defaultConfig.Machines[0].Count
 	configCreateCmd.PersistentFlags().IntVarP(replicas, "replicas", "r", *replicas, "Number of machine replicas")
 
+	image := &defaultConfig.Machines[0].Spec.Image
+	configCreateCmd.PersistentFlags().StringVarP(image, "image", "i", *image, "Docker image to use in the containers")
+
 	privileged := &defaultConfig.Machines[0].Spec.Privileged
 	configCreateCmd.PersistentFlags().BoolVar(privileged, "privileged", *privileged, "Create privileged containers")
 
