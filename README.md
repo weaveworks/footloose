@@ -24,7 +24,7 @@ with containers.
 
 `footloose` binaries can be downloaded from the [release page][gh-release]:
 
-```
+```console
 # For Linux
 curl -Lo footloose https://github.com/dlespiau/footloose/releases/download/0.1.0/footloose-0.1.0-linux-x86_64
 chmod +x footloose
@@ -39,7 +39,7 @@ sudo mv footloose /usr/local/bin/
 Alternatively, build and install `footloose` from sources. It requires having
 `go >= 1.11` installed:
 
-```
+```console
 go get github.com/dlespiau/footloose
 ```
 
