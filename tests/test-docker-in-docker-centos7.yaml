@@ -1,6 +1,6 @@
 cluster:
-  name: test-docker-in-docker
-  privateKey: test-docker-in-docker-key
+  name: test-docker-in-docker-centos7
+  privateKey: test-docker-in-docker-centos7-key
 machines:
 - count: 1
   spec:
