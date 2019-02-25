@@ -86,6 +86,21 @@ $ footloose ssh root@node1
    62 ?        Ss     0:00 /usr/lib/systemd/systemd-logind
 ```
 
+## Choosing the OS image to run
+
+`footloose` will default to running a centos 7 container image. The `--image`
+argument of `config create` can be used to configure the OS image. Valid OS
+images are:
+
+- `quay.io/footloose/centos7`
+- `quay.io/footloose/fedora29`
+
+For example:
+
+```console
+footloose config create --replicas 3 --image quay.io/footloose/fedora29
+```
+
 ## `footloose.yaml`
 
 `footloose config create` creates a `footloose.yaml` configuration file that is then
