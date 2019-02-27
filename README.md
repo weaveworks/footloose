@@ -94,6 +94,7 @@ images are:
 
 - `quay.io/footloose/centos7`
 - `quay.io/footloose/fedora29`
+- `quay.io/footloose/ubuntu18.04`
 - `quay.io/footloose/amazonlinux2`
 
 For example:
