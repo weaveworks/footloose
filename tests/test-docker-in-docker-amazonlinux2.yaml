@@ -1,0 +1,14 @@
+cluster:
+  name: test-docker-in-docker-amazonlinux2
+  privateKey: test-docker-in-docker-amazonlinux2-key
+machines:
+- count: 1
+  spec:
+    volumes:
+    - type: volume
+      destination: /var/lib/docker
+    image: quay.io/footloose/amazonlinux2
+    name: node%d
+    portMappings:
+    - containerPort: 22
+    privileged: true
