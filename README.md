@@ -40,7 +40,7 @@ Alternatively, build and install `footloose` from sources. It requires having
 `go >= 1.11` installed:
 
 ```console
-go get github.com/dlespiau/footloose
+GO111MODULE=on go get github.com/dlespiau/footloose
 ```
 
 [gh-release]: https://github.com/dlespiau/footloose/releases
