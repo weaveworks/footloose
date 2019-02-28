@@ -183,18 +183,22 @@ type cmd struct {
 	captureOutput bool
 }
 
-func (t *test) parseCmd(line string) cmd {
-	parts := strings.Split(line, " ")
-
-	// Replace special strings
+func (t *test) expandVars(s string) string {
 	replacements := copyArray(t.vars)
 	replacements = append(replacements,
 		"%d", t.outputDir(),
 		"%t", t.name(),
 	)
 	replacer := strings.NewReplacer(replacements...)
+	return replacer.Replace(s)
+}
+
+func (t *test) parseCmd(line string) cmd {
+	parts := strings.Split(line, " ")
+
+	// Replace special strings
 	for i := range parts {
-		parts[i] = replacer.Replace(parts[i])
+		parts[i] = t.expandVars(parts[i])
 	}
 
 	cmd := cmd{}
