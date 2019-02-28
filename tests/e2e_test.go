@@ -2,6 +2,7 @@ package tests
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -13,6 +14,109 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+type variables map[string][]string
+
+func (v variables) alternatives(name string) []string {
+	return v[name]
+}
+
+func copyArray(a []string) []string {
+	tmp := make([]string, len(a))
+	copy(tmp, a)
+	return tmp
+}
+
+type expandedItem struct {
+	expanded    string
+	combination []string
+}
+
+func uniqueItems(slice []expandedItem) []expandedItem {
+	m := make(map[string]struct{})
+	r := []expandedItem{}
+	for _, i := range slice {
+		if _, ok := m[i.expanded]; ok {
+			continue
+		}
+		m[i.expanded] = struct{}{}
+		r = append(r, i)
+	}
+	return r
+}
+
+func fixupSingleCombination(s []expandedItem) []expandedItem {
+	// When the expansion result in a single string, it's really not the result of
+	// a combination of vars, so clear up the combination field.
+	if len(s) == 1 {
+		s[0].combination = nil
+	}
+	return s
+}
+
+func (v variables) expand(s string) []expandedItem {
+	expanded := []expandedItem{}
+
+	if len(v) == 0 {
+		return []expandedItem{
+			{expanded: s},
+		}
+	}
+
+	args := [][]string{}
+	for k := range v {
+		alts := v.alternatives(k)
+
+		if len(args) == 0 {
+			// Populate args for the first time
+			cur := [][]string{}
+			for _, alt := range alts {
+				cur = append(cur, []string{"%" + k, alt})
+			}
+			args = cur
+			continue
+		}
+
+		cur := [][]string{}
+		for _, a := range args {
+			for _, alt := range alts {
+				tmp := copyArray(a)
+				cur = append(cur, append(tmp, "%"+k, alt))
+			}
+		}
+		args = cur
+	}
+
+	for _, a := range args {
+		replacer := strings.NewReplacer(a...)
+		expanded = append(expanded, expandedItem{
+			expanded:    replacer.Replace(s),
+			combination: a,
+		})
+	}
+	return fixupSingleCombination(uniqueItems(expanded))
+}
+
+func TestVariableExpansion(t *testing.T) {
+	v := make(variables)
+	v["foo"] = []string{"foo1", "foo2"}
+	v["bar"] = []string{"bar1", "bar2", "bar3"}
+
+	// Test a string expansion
+	assert.Equal(t, []expandedItem{
+		{"foo1-bar1", []string{"%foo", "foo1", "%bar", "bar1"}},
+		{"foo1-bar2", []string{"%foo", "foo1", "%bar", "bar2"}},
+		{"foo1-bar3", []string{"%foo", "foo1", "%bar", "bar3"}},
+		{"foo2-bar1", []string{"%foo", "foo2", "%bar", "bar1"}},
+		{"foo2-bar2", []string{"%foo", "foo2", "%bar", "bar2"}},
+		{"foo2-bar3", []string{"%foo", "foo2", "%bar", "bar3"}},
+	}, v.expand("%foo-%bar"))
+
+	// When a string doesn't need expansion.
+	assert.Equal(t, []expandedItem{
+		{"foo", nil},
+	}, v.expand("foo"))
+}
 
 func find(dir string) ([]string, error) {
 	var files []string
@@ -35,19 +139,19 @@ func find(dir string) ([]string, error) {
 
 // test is a end to end test, corresponding to one test-$testname.cmd file.
 type test struct {
-	file string // name of the test file (test-*.cmd), without the extentension.
+	testname string   // test name, after variable resolution.
+	file     string   // name of the test file (test-*.cmd), without the extentension.
+	vars     []string // user-defined variables list of key, value pairs.
 }
 
-func newTest(testFile string) *test {
-	ext := filepath.Ext(testFile)
-	file := testFile[:len(testFile)-len(ext)]
-	return &test{
-		file: file,
-	}
-}
+type byName []test
+
+func (a byName) Len() int           { return len(a) }
+func (a byName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byName) Less(i, j int) bool { return a[i].testname < a[j].testname }
 
 func (t *test) name() string {
-	return t.file
+	return t.testname
 }
 
 func exists(filename string) bool {
@@ -56,19 +160,19 @@ func exists(filename string) bool {
 }
 
 func (t *test) shouldErrorOut() bool {
-	return exists(t.file + ".error")
+	return exists(t.testname + ".error")
 }
 
 func (t *test) shouldSkip() bool {
-	return exists(t.file + ".skip")
+	return exists(t.testname + ".skip")
 }
 
 func (t *test) isLong() bool {
-	return exists(t.file + ".long")
+	return exists(t.testname + ".long")
 }
 
 func (t *test) outputDir() string {
-	return t.file + ".got"
+	return t.testname + ".got"
 }
 
 type cmd struct {
@@ -81,11 +185,14 @@ type cmd struct {
 
 func (t *test) parseCmd(line string) cmd {
 	parts := strings.Split(line, " ")
-	replacer := strings.NewReplacer(
+
+	// Replace special strings
+	replacements := copyArray(t.vars)
+	replacements = append(replacements,
 		"%d", t.outputDir(),
 		"%t", t.name(),
 	)
-	// Replace special strings
+	replacer := strings.NewReplacer(replacements...)
 	for i := range parts {
 		parts[i] = replacer.Replace(parts[i])
 	}
@@ -104,7 +211,7 @@ func (t *test) parseCmd(line string) cmd {
 }
 
 func (t *test) run() (string, error) {
-	f, err := os.Open(t.file + ".cmd")
+	f, err := os.Open(t.file)
 	if err != nil {
 		return "", err
 	}
@@ -163,7 +270,7 @@ func runTest(t *testing.T, test *test) {
 	}
 
 	// 1. Compare stdout/err.
-	golden, _ := ioutil.ReadFile(test.file + ".golden.output")
+	golden, _ := ioutil.ReadFile(test.testname + ".golden.output")
 	assert.Equal(t, string(golden), string(output))
 
 	// 2. Compare produced files.
@@ -186,24 +293,54 @@ func runTest(t *testing.T, test *test) {
 	}
 }
 
-func listTestFiles(t *testing.T) []string {
+func loadVariables(t *testing.T) variables {
+	data, err := ioutil.ReadFile("variables.json")
+	if err != nil {
+		// it's allowed to not have any variable!
+		return nil
+	}
+
+	vars := make(variables)
+	if err := json.Unmarshal(data, &vars); err != nil {
+		t.Fatalf("variables.json: %v", err)
+	}
+
+	return vars
+}
+
+func listTests(t *testing.T, vars variables) []test {
 	files, err := filepath.Glob("test-*.cmd")
 	assert.NoError(t, err)
 
-	sort.Strings(files)
-	return files
+	// expand variables in file names.
+	expanded := []test{}
+	for _, f := range files {
+		items := vars.expand(f)
+		for _, item := range items {
+			ext := filepath.Ext(item.expanded)
+			testname := item.expanded[:len(item.expanded)-len(ext)]
+			expanded = append(expanded, test{
+				testname: testname,
+				file:     f,
+				vars:     item.combination,
+			})
+		}
+	}
+
+	sort.Sort(byName(expanded))
+	return expanded
 }
 
 func TestEndToEnd(t *testing.T) {
-	files := listTestFiles(t)
+	vars := loadVariables(t)
+	tests := listTests(t, vars)
 
-	for _, file := range files {
-		test := newTest(file)
+	for _, test := range tests {
 		t.Run(test.name(), func(t *testing.T) {
 			if test.isLong() && testing.Short() {
 				t.Skip("Skipping long running test in short mode")
 			}
-			runTest(t, test)
+			runTest(t, &test)
 		})
 	}
 }
