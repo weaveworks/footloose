@@ -247,6 +247,25 @@ func (t *test) run() (string, error) {
 	return capturedOutput.String(), nil
 }
 
+func (t *test) goldenOutput() string {
+	// testname.golden.output takes precedence.
+	golden, err := ioutil.ReadFile(t.testname + ".golden.output")
+	if err == nil {
+		return string(golden)
+	}
+
+	// Expand a generic golden output.
+	baseFilename := t.file[:len(t.file)-len(".cmd")]
+	data, err := ioutil.ReadFile(baseFilename + ".golden.output")
+	if err != nil {
+		// not having any golden output isn't an error, it just means the test
+		// shouldn't output anything.
+		return ""
+	}
+
+	return t.expandVars(string(data))
+}
+
 func runTest(t *testing.T, test *test) {
 	base := test.file
 	goldenDir := base + ".golden"
@@ -270,8 +289,7 @@ func runTest(t *testing.T, test *test) {
 	}
 
 	// 1. Compare stdout/err.
-	golden, _ := ioutil.ReadFile(test.testname + ".golden.output")
-	assert.Equal(t, string(golden), string(output))
+	assert.Equal(t, test.goldenOutput(), string(output))
 
 	// 2. Compare produced files.
 	goldenFiles, _ := find(goldenDir)
