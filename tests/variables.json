@@ -1,0 +1,8 @@
+{
+  "image": [
+    "amazonlinux2",
+    "centos7",
+    "fedora29",
+    "ubuntu18.04"
+  ]
+}

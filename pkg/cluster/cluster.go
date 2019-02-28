@@ -324,7 +324,7 @@ func (c *Cluster) SSH(nodename string, username string, remoteArgs ...string) er
 	// with:
 	//   ssh_exchange_identification: read: Connection reset by peer
 	// Let's loop a few times if we receive this message.
-	retries := 3
+	retries := 25
 	var retry bool
 	for retries > 0 {
 		retry, err = ssh(args)
