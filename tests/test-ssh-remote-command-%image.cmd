@@ -1,4 +1,4 @@
-footloose config create --config %t.footloose --name %t --key %t-key --image quay.io/footloose/%image
-footloose create --config %t.footloose
-%out footloose --config %t.footloose ssh root@node0 hostname
-footloose delete --config %t.footloose
+footloose config create --config %testName.footloose --name %testName --key %testName-key --image quay.io/footloose/%image
+footloose create --config %testName.footloose
+%out footloose --config %testName.footloose ssh root@node0 hostname
+footloose delete --config %testName.footloose
