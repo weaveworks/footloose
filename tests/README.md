@@ -42,3 +42,53 @@ go test -v -run TestEndToEnd/test-create-delete
 
 This will match `test-create-delete-centos7`, `test-create-delete-fedora29`,
 ...
+
+## Writing tests
+
+`footloose` has a small framework to write end to end tests. The main idea is
+to write a `.cmd` file with a list of commands to run and compare the output
+(stdout+stderr) of those commands to a golden, expected, output.
+
+`.cmd` files look like (`test-ssh-remote-command-%image.cmd`):
+
+```shell
+footloose config create --config %testName.footloose --name %testName --key %testName-key --image quay.io/footloose/%image
+footloose create --config %testName.footloose
+%out footloose --config %testName.footloose ssh root@node0 hostname
+footloose delete --config %testName.footloose
+```
+
+And the corresponding golden output file (`test-ssh-remote-command-%image.golden.output`):
+
+```shell
+node0
+```
+
+Some variables and directives are supplied by the test framework:
+
+- **%testName**: The name of the test. This is really the name of the `.cmd`
+file without the extension.
+
+- **%out**: Capture the output of the following command to be compared to the
+golden output. In the example above the result of the remote `hostname`
+command will be compared to `node0`.
+
+It is also possible to have user-defined variables, variables that are
+specified outside of the test framework. In the example above, `%image` is
+such a variable. User-defined variables are kept in `variables.json`:
+
+
+```json
+{
+  "image": [
+    "amazonlinux2",
+    "centos7",
+    "fedora29",
+    "ubuntu18.04"
+  ]
+}
+```
+
+The test framework will instantiate a separate test case for each value of
+the `image` array. For this to work, the `.cmd` file will need to reference
+`%image` in its name too in order keep the test name unique.
