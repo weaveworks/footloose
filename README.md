@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.com/dlespiau/footloose.svg?branch=master)](https://travis-ci.com/dlespiau/footloose)
-[![Go Report Card](https://goreportcard.com/badge/github.com/dlespiau/footloose)](https://goreportcard.com/report/github.com/dlespiau/footloose)
-[![GoDoc](https://godoc.org/github.com/dlespiau/footloose?status.svg)](https://godoc.org/github.com/dlespiau/footloose)
+[![Build Status](https://travis-ci.com/weaveworks/footloose.svg?branch=master)](https://travis-ci.com/weaveworks/footloose)
+[![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/footloose)](https://goreportcard.com/report/github.com/weaveworks/footloose)
+[![GoDoc](https://godoc.org/github.com/weaveworks/footloose?status.svg)](https://godoc.org/github.com/weaveworks/footloose)
 
 # footloose
 
@@ -18,7 +18,7 @@ with containers.
 
 [![asciicast](https://asciinema.org/a/226185.svg)](https://asciinema.org/a/226185)
 
-[readme-did]: https://github.com/dlespiau/footloose#running-dockerd-in-container-machines
+[readme-did]: https://github.com/weaveworks/footloose#running-dockerd-in-container-machines
 
 ## Install
 
@@ -26,12 +26,12 @@ with containers.
 
 ```console
 # For Linux
-curl -Lo footloose https://github.com/dlespiau/footloose/releases/download/0.1.0/footloose-0.1.0-linux-x86_64
+curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.1.0/footloose-0.1.0-linux-x86_64
 chmod +x footloose
 sudo mv footloose /usr/local/bin/
 
 # For macOS
-curl -Lo footloose https://github.com/dlespiau/footloose/releases/download/0.1.0/footloose-0.1.0-darwin-x86_64
+curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.1.0/footloose-0.1.0-darwin-x86_64
 chmod +x footloose
 sudo mv footloose /usr/local/bin/
 ```
@@ -40,10 +40,10 @@ Alternatively, build and install `footloose` from sources. It requires having
 `go >= 1.11` installed:
 
 ```console
-GO111MODULE=on go get github.com/dlespiau/footloose
+GO111MODULE=on go get github.com/weaveworks/footloose
 ```
 
-[gh-release]: https://github.com/dlespiau/footloose/releases
+[gh-release]: https://github.com/weaveworks/footloose/releases
 
 ## Usage
 
@@ -128,7 +128,7 @@ machines:
 This configuration can naturally be edited by hand. The full list of
 available parameters are in [the reference documentation][pkg-config].
 
-[pkg-config]: https://godoc.org/github.com/dlespiau/footloose/pkg/config
+[pkg-config]: https://godoc.org/github.com/weaveworks/footloose/pkg/config
 
 ## Examples
 
@@ -137,7 +137,7 @@ Interesting things can be done with `footloose`!
 ## Customize the OS image
 
 It is possible to create docker images that specialize a [`footloose` base
-image](https://github.com/dlespiau/footloose#choosing-the-os-image-to-run) to
+image](https://github.com/weaveworks/footloose#choosing-the-os-image-to-run) to
 suit your needs.
 
 For instance, if we want the created machines to run `fedora29` with the

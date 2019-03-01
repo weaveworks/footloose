@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dlespiau/footloose/pkg/config"
+	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/pkg/errors"
 	"sigs.k8s.io/kind/pkg/docker"
 )

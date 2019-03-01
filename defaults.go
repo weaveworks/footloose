@@ -1,6 +1,6 @@
 package main
 
-import "github.com/dlespiau/footloose/pkg/config"
+import "github.com/weaveworks/footloose/pkg/config"
 
 var defaultConfig = config.Config{
 	Cluster: config.Cluster{

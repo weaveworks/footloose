@@ -10,7 +10,7 @@ limitation can be lifted once we can select `footloose` containers better
 ([#17][issue-17]).
 - `footloose` in the path.
 
-[issue-17]: https://github.com/dlespiau/footloose/issues/17
+[issue-17]: https://github.com/weaveworks/footloose/issues/17
 
 ## Running the tests
 
