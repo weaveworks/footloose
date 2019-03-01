@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/weaveworks/footloose.svg?branch=master)](https://travis-ci.com/weaveworks/footloose)
+[![Build Status](https://travis-ci.org/weaveworks/footloose.svg?branch=master)](https://travis-ci.org/weaveworks/footloose)
 [![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/footloose)](https://goreportcard.com/report/github.com/weaveworks/footloose)
 [![GoDoc](https://godoc.org/github.com/weaveworks/footloose?status.svg)](https://godoc.org/github.com/weaveworks/footloose)
 
