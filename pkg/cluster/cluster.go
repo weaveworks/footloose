@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/dlespiau/footloose/pkg/config"
+	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"sigs.k8s.io/kind/pkg/docker"

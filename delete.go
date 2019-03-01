@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dlespiau/footloose/pkg/cluster"
+	"github.com/weaveworks/footloose/pkg/cluster"
 )
 
 var deleteCmd = &cobra.Command{

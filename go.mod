@@ -1,4 +1,4 @@
-module github.com/dlespiau/footloose
+module github.com/weaveworks/footloose
 
 require (
 	github.com/ghodss/yaml v1.0.0
