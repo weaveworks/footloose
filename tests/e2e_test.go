@@ -195,8 +195,8 @@ type cmd struct {
 func (t *test) expandVars(s string) string {
 	replacements := copyArray(t.vars)
 	replacements = append(replacements,
-		"%d", t.outputDir(),
-		"%t", t.name(),
+		"%testOutputDir", t.outputDir(),
+		"%testName", t.name(),
 	)
 	replacer := strings.NewReplacer(replacements...)
 	return replacer.Replace(s)
