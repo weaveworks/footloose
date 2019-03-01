@@ -21,6 +21,15 @@ func (v variables) alternatives(name string) []string {
 	return v[name]
 }
 
+func (v variables) sortedKeys() []string {
+	keys := []string{}
+	for k := range v {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 func copyArray(a []string) []string {
 	tmp := make([]string, len(a))
 	copy(tmp, a)
@@ -64,7 +73,7 @@ func (v variables) expand(s string) []expandedItem {
 	}
 
 	args := [][]string{}
-	for k := range v {
+	for _, k := range v.sortedKeys() {
 		alts := v.alternatives(k)
 
 		if len(args) == 0 {
@@ -104,12 +113,12 @@ func TestVariableExpansion(t *testing.T) {
 
 	// Test a string expansion
 	assert.Equal(t, []expandedItem{
-		{"foo1-bar1", []string{"%foo", "foo1", "%bar", "bar1"}},
-		{"foo1-bar2", []string{"%foo", "foo1", "%bar", "bar2"}},
-		{"foo1-bar3", []string{"%foo", "foo1", "%bar", "bar3"}},
-		{"foo2-bar1", []string{"%foo", "foo2", "%bar", "bar1"}},
-		{"foo2-bar2", []string{"%foo", "foo2", "%bar", "bar2"}},
-		{"foo2-bar3", []string{"%foo", "foo2", "%bar", "bar3"}},
+		{"foo1-bar1", []string{"%bar", "bar1", "%foo", "foo1"}},
+		{"foo2-bar1", []string{"%bar", "bar1", "%foo", "foo2"}},
+		{"foo1-bar2", []string{"%bar", "bar2", "%foo", "foo1"}},
+		{"foo2-bar2", []string{"%bar", "bar2", "%foo", "foo2"}},
+		{"foo1-bar3", []string{"%bar", "bar3", "%foo", "foo1"}},
+		{"foo2-bar3", []string{"%bar", "bar3", "%foo", "foo2"}},
 	}, v.expand("%foo-%bar"))
 
 	// When a string doesn't need expansion.
