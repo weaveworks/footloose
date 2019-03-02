@@ -26,12 +26,12 @@ with containers.
 
 ```console
 # For Linux
-curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.1.0/footloose-0.1.0-linux-x86_64
+curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.2.0/footloose-0.2.0-linux-x86_64
 chmod +x footloose
 sudo mv footloose /usr/local/bin/
 
 # For macOS
-curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.1.0/footloose-0.1.0-darwin-x86_64
+curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.2.0/footloose-0.2.0-darwin-x86_64
 chmod +x footloose
 sudo mv footloose /usr/local/bin/
 ```
