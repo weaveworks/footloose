@@ -1,0 +1,25 @@
+---
+- name: Install nginx
+  hosts: cluster-node0
+
+  tasks:
+  - name: Add epel-release repo
+    yum:
+      name: epel-release
+      state: present
+
+  - name: Install nginx
+    yum:
+      name: nginx
+      state: present
+
+  - name: Insert Index Page
+    copy:
+      content: "welcome to footloose nginx ansible example"
+      dest: /usr/share/nginx/html/index.html
+
+  - name: Start NGiNX
+    service:
+      name: nginx
+      state: started
+
