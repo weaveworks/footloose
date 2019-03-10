@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/footloose/pkg/config"
 	"sigs.k8s.io/kind/pkg/docker"
 )
 
@@ -36,6 +36,15 @@ func (m *Machine) ContainerName() string {
 // Hostname is the machine hostname.
 func (m *Machine) Hostname() string {
 	return m.hostname
+}
+
+// IsRunning returns if a machine is currently active and running or not.
+func (m *Machine) IsRunning() bool {
+	res, _ := docker.Inspect(m.name, "{{.Name}}")
+	if len(res) > 0 && len(res[0]) > 0 {
+		return true
+	}
+	return false
 }
 
 // HostPort returns the host port corresponding to the given container port.
