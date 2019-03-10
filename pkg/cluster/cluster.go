@@ -52,6 +52,15 @@ func NewFromFile(path string) (*Cluster, error) {
 	return NewFromYAML(data)
 }
 
+// ConfigExists checks whether a configuration file has already been created.
+// Returns false if not true if it already exists.
+func (c *Cluster) ConfigExists(path string) bool {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
 // Save writes the Cluster configure to a file.
 func (c *Cluster) Save(path string) error {
 	data, err := yaml.Marshal(c.spec)

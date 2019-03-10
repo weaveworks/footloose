@@ -1,6 +1,9 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	"github.com/weaveworks/footloose/pkg/cluster"
@@ -39,5 +42,9 @@ func init() {
 
 func configCreate(cmd *cobra.Command, args []string) error {
 	cluster := cluster.New(defaultConfig)
+	if cluster.ConfigExists(configCreateOptions.file) {
+		message := fmt.Sprintf("Configuration file at %s already exists...", configCreateOptions.file)
+		return errors.New(message)
+	}
 	return cluster.Save(configCreateOptions.file)
 }
