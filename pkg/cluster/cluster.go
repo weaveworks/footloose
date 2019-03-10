@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/ghodss/yaml"
@@ -127,14 +126,8 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 	// Start the container.
 	log.Infof("Creating machine: %s ...", name)
 
-	// We get the status of a container. If this errors out,
-	// the container is not running. If it is running,
-	// res will contain the name of the container. Any other
-	// errors that might come from docker not running will surface
-	// on the next call.
-	res, _ := docker.Inspect(name, "{{.Name}}")
-	if len(res) > 0 && len(res[0]) > 0 {
-		log.Infof("Machine with name %s already running...", name)
+	if machine.IsRunning() {
+		log.Infof("Machine with name %s is already running...", name)
 		return nil
 	}
 
@@ -221,8 +214,7 @@ func (c *Cluster) Create() error {
 
 func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
-	res, _ := docker.Inspect(name, "")
-	if len(res) == 2 && strings.Contains(res[1], "No such object") {
+	if !machine.IsRunning() {
 		log.Infof("Machine with name %s isn't running...", name)
 		return nil
 	}
