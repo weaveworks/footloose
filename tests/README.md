@@ -17,14 +17,14 @@ limitation can be lifted once we can select `footloose` containers better
 To run all tests:
 
 ```console
-go tests -v ./tests
+go test -v ./tests
 ```
 
 To exclude long running tests (useful to smoke test a change before a longer
 run in CI):
 
 ```console
-go tests -short -v ./tests
+go test -short -v ./tests
 ```
 
 To run a specific test:

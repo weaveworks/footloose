@@ -6,11 +6,12 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
-	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/footloose/pkg/config"
 	"sigs.k8s.io/kind/pkg/docker"
 	"sigs.k8s.io/kind/pkg/exec"
 )
@@ -125,6 +126,18 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 
 	// Start the container.
 	log.Infof("Creating machine: %s ...", name)
+
+	// We get the status of a container. If this errors out,
+	// the container is not running. If it is running,
+	// res will contain the name of the container. Any other
+	// errors that might come from docker not running will surface
+	// on the next call.
+	res, _ := docker.Inspect(name, "{{.Name}}")
+	if len(res) > 0 && len(res[0]) > 0 {
+		log.Infof("Machine with name %s already running...", name)
+		return nil
+	}
+
 	_, err := docker.Run(machine.spec.Image,
 		runArgs,
 		[]string{"/sbin/init"},
@@ -208,6 +221,11 @@ func (c *Cluster) Create() error {
 
 func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
+	res, _ := docker.Inspect(name, "")
+	if len(res) == 2 && strings.Contains(res[1], "No such object") {
+		log.Infof("Machine with name %s isn't running...", name)
+		return nil
+	}
 	log.Infof("Deleting machine: %s ...", name)
 	return docker.Kill("KILL", name)
 }
