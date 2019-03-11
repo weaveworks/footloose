@@ -170,11 +170,11 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 	runArgs := []string{
 		"-it", "-d", "--rm",
 		"--name", name,
-		// "--hostname", machine.Hostname(),
+		"--hostname", machine.Hostname(),
 		// "--tmpfs", "/run",
-		// "--tmpfs", "/run/lock",
-		// "--tmpfs", "/tmp",
-		// "-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
+		"--tmpfs", "/run/lock",
+		"--tmpfs", "/tmp",
+		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
 	for _, volume := range machine.spec.Volumes {
