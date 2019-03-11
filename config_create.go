@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -40,9 +41,19 @@ func init() {
 	configCmd.AddCommand(configCreateCmd)
 }
 
+// configExists checks whether a configuration file has already been created.
+// Returns false if not true if it already exists.
+func configExists(path string) bool {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
 func configCreate(cmd *cobra.Command, args []string) error {
 	cluster := cluster.New(defaultConfig)
-	if cluster.ConfigExists(configCreateOptions.file) {
+	if configExists(configCreateOptions.file) {
 		message := fmt.Sprintf("Configuration file at %s already exists...", configCreateOptions.file)
 		return errors.New(message)
 	}
