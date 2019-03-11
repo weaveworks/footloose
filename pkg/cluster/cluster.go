@@ -140,7 +140,7 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 
 	_, err := docker.Run(machine.spec.Image,
 		runArgs,
-		[]string{"/sbin/init"},
+		[]string{"/usr/bin/supervisord"},
 	)
 	if err != nil {
 		return err
@@ -165,11 +165,11 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 	runArgs := []string{
 		"-it", "-d", "--rm",
 		"--name", name,
-		"--hostname", machine.Hostname(),
-		"--tmpfs", "/run",
-		"--tmpfs", "/run/lock",
-		"--tmpfs", "/tmp",
-		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
+		// "--hostname", machine.Hostname(),
+		// "--tmpfs", "/run",
+		// "--tmpfs", "/run/lock",
+		// "--tmpfs", "/tmp",
+		// "-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
 	for _, volume := range machine.spec.Volumes {

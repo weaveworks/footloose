@@ -13,7 +13,7 @@ RUN find /etc/systemd/system \
 
 RUN apt-get update && \
     apt-get install -y \
-    dbus systemd openssh-server && \
+    dbus systemd openssh-server openssh-client supervisor && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -27,12 +27,16 @@ RUN systemctl mask \
       systemd-tmpfiles-setup.service \
       console-getty.service
 
+RUN mkdir -p /var/run/sshd /var/log/supervisor
+
 # This container image doesn't have locales installed. Disable forwarding the
 # user locale env variables or we get warnings such as:
 #  bash: warning: setlocale: LC_ALL: cannot change locale
 RUN sed -i -e 's/^AcceptEnv LANG LC_\*$/#AcceptEnv LANG LC_*/' /etc/ssh/sshd_config
+RUN sed -i -e 's/^PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # https://www.freedesktop.org/wiki/Software/systemd/ContainerInterface/
 STOPSIGNAL SIGRTMIN+3
 
-CMD ["/bin/bash"]
+CMD ["/usr/bin/supervisord"]
