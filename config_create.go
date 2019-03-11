@@ -45,7 +45,7 @@ func init() {
 // Returns false if not true if it already exists.
 func configExists(path string) bool {
 	info, err := os.Stat(path)
-	if os.IsNotExist(err) {
+	if os.IsNotExist(err) || os.IsPermission(err) {
 		return false
 	}
 	return !info.IsDir()
