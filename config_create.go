@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -54,8 +53,7 @@ func configExists(path string) bool {
 func configCreate(cmd *cobra.Command, args []string) error {
 	cluster := cluster.New(defaultConfig)
 	if configExists(configCreateOptions.file) {
-		message := fmt.Sprintf("Configuration file at %s already exists...", configCreateOptions.file)
-		return errors.New(message)
+		return fmt.Errorf("configuration file at %s already exists", configCreateOptions.file)
 	}
 	return cluster.Save(configCreateOptions.file)
 }
