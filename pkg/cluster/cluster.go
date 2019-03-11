@@ -138,9 +138,14 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 		return nil
 	}
 
+	cmd := "/sbin/init"
+	if machine.spec.Cmd != "" {
+		cmd = machine.spec.Cmd
+	}
+
 	_, err := docker.Run(machine.spec.Image,
 		runArgs,
-		[]string{"/usr/bin/supervisord"},
+		[]string{cmd},
 	)
 	if err != nil {
 		return err

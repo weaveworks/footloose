@@ -48,4 +48,6 @@ type Machine struct {
 	Volumes []Volume `json:"volumes,omitempty"`
 	// PortMappings is the list of ports to expose to the host.
 	PortMappings []PortMapping `json:"portMappings,omitempty"`
+	// Cmd is a cmd which will be run in the container.
+	Cmd string `json:"cmd,omitempty"`
 }
