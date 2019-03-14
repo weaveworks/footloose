@@ -21,7 +21,7 @@ if [ $# -lt 2 ]; then
   echo
   echo "ARGS are VERB-specific optional arguments"
   echo "  • tag requires a version"
-  echo "  • push takes an option version, defaults to 'latest' "
+  echo "  • push takes an optional version, defaults to 'latest' "
   echo
   echo "Examples:"
   echo "  • $0 build all"
