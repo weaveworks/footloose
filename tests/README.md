@@ -84,7 +84,8 @@ such a variable. User-defined variables are kept in `variables.json`:
     "amazonlinux2",
     "centos7",
     "fedora29",
-    "ubuntu18.04"
+    "ubuntu18.04",
+    "debian10"
   ]
 }
 ```
