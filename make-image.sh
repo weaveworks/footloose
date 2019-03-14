@@ -73,7 +73,7 @@ tag)
 
 push)
   version=latest
-  [ -n "$1" ] && version=$1
+  [ $# == 1 ] && version=$1
   for image in $images; do
     echo "  • Pushing $org/$image:$version"
     docker push $org/$image:$version
