@@ -324,6 +324,7 @@ func (c *Cluster) SSH(nodename string, username string, remoteArgs ...string) er
 	args := []string{
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
+		"-o", "IdentitiesOnly=yes",
 		"-i", c.spec.Cluster.PrivateKey,
 		"-p", f("%d", hostPort),
 		"-l", username,
