@@ -20,7 +20,7 @@ deploy:
 - provider: script
   skip_cleanup: true
   script:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin quay.io
   - ./make-image.sh push all
 - provider: script
   skip_cleanup: true
