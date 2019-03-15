@@ -1,0 +1,14 @@
+cluster:
+  name: test-docker-in-docker-debian10
+  privateKey: test-docker-in-docker-debian10-key
+machines:
+- count: 1
+  spec:
+    volumes:
+    - type: volume
+      destination: /var/lib/docker
+    image: quay.io/footloose/debian10
+    name: node%d
+    portMappings:
+    - containerPort: 22
+    privileged: true
