@@ -2,7 +2,7 @@ FROM centos:7
 
 ENV container docker
 
-RUN yum -y install sudo && yum clean all
+RUN yum -y install sudo procps-ng net-tools iproute iputils wget && yum clean all
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == \
 systemd-tmpfiles-setup.service ] || rm -f $i; done); \

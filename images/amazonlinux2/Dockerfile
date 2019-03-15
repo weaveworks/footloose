@@ -2,7 +2,7 @@ FROM amazonlinux:2
 
 ENV container docker
 
-RUN yum -y install sudo systemd hostname && yum clean all
+RUN yum -y install sudo systemd hostname procps-ng net-tools iproute iputils wget && yum clean all
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == \
 systemd-tmpfiles-setup.service ] || rm -f $i; done); \
