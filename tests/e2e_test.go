@@ -234,7 +234,11 @@ func (t *test) run() (string, error) {
 
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
-		testCmd := t.parseCmd(scanner.Text())
+		line := scanner.Text()
+		if line[0] == '#' {
+			continue
+		}
+		testCmd := t.parseCmd(line)
 		cmd := exec.Command(testCmd.name, testCmd.args...)
 		if testCmd.captureOutput {
 			output, err := cmd.CombinedOutput()

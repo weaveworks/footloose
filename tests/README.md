@@ -52,6 +52,7 @@ to write a `.cmd` file with a list of commands to run and compare the output
 `.cmd` files look like (`test-ssh-remote-command-%image.cmd`):
 
 ```shell
+# Test footloose ssh can execute a remote command
 footloose config create --config %testName.footloose --name %testName --key %testName-key --image quay.io/footloose/%image
 footloose create --config %testName.footloose
 %out footloose --config %testName.footloose ssh root@node0 hostname
