@@ -16,11 +16,13 @@ var configCreateCmd = &cobra.Command{
 }
 
 var configCreateOptions struct {
-	file string
+	override bool
+	file     string
 }
 
 func init() {
 	configCreateCmd.Flags().StringVarP(&configCreateOptions.file, "config", "c", Footloose, "Cluster configuration file")
+	configCreateCmd.Flags().BoolVar(&configCreateOptions.override, "override", false, "Override configuration file if it exists")
 
 	name := &defaultConfig.Cluster.Name
 	configCreateCmd.PersistentFlags().StringVarP(name, "name", "n", *name, "Name of the cluster")
@@ -51,9 +53,10 @@ func configExists(path string) bool {
 }
 
 func configCreate(cmd *cobra.Command, args []string) error {
+	opts := &configCreateOptions
 	cluster := cluster.New(defaultConfig)
-	if configExists(configCreateOptions.file) {
-		return fmt.Errorf("configuration file at %s already exists", configCreateOptions.file)
+	if configExists(opts.file) && !opts.override {
+		return fmt.Errorf("configuration file at %s already exists", opts.file)
 	}
-	return cluster.Save(configCreateOptions.file)
+	return cluster.Save(opts.file)
 }
