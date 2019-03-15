@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM debian:buster
 
 ENV container docker
 
@@ -21,13 +21,11 @@ EXPOSE 22
 
 RUN systemctl set-default multi-user.target
 RUN systemctl mask \
-      dev-hugepages.mount \
-      sys-fs-fuse-connections.mount \
-      systemd-update-utmp.service \
-      systemd-tmpfiles-setup.service \
-      console-getty.service
-RUN systemctl disable \
-      networkd-dispatcher.service
+    dev-hugepages.mount \
+    sys-fs-fuse-connections.mount \
+    systemd-update-utmp.service \
+    systemd-tmpfiles-setup.service \
+    console-getty.service
 
 # This container image doesn't have locales installed. Disable forwarding the
 # user locale env variables or we get warnings such as:

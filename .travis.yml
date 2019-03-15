@@ -13,9 +13,13 @@ services:
 matrix:
   include:
     - script:
+      - ./make-image.sh build all
       - go test -timeout 0 -v ./tests
 
 deploy:
+- provider: script
+  skip_cleanup: true
+  script: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" quay.io && ./make-image.sh push all
 - provider: script
   skip_cleanup: true
   script: curl -sL https://git.io/goreleaser | bash

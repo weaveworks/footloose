@@ -97,6 +97,7 @@ images are:
 - `quay.io/footloose/ubuntu16.04`
 - `quay.io/footloose/ubuntu18.04`
 - `quay.io/footloose/amazonlinux2`
+- `quay.io/footloose/debian10`
 
 For example:
 
@@ -268,3 +269,24 @@ Failed to install release agent, ignoring: File exists
 [  OK  ] Started OpenSSH server daemon.
 [  OK  ] Reached target Multi-User System.
 ```
+
+## FAQ
+
+### Is `footloose` just like LXD?
+In principle yes, but it will also work with Docker container images and
+on MacOS as well.
+
+## Help
+
+We are a very friendly community and love questions, help and feedback.
+
+If you have any questions, feedback, or problems with `footloose`:
+
+- Check out the [examples](examples).
+- Join the discussion
+  - Invite yourself to the <a href="https://slack.weave.works/" target="_blank">Weave community</a> Slack.
+  - Ask a question on the [#general](https://weave-community.slack.com/messages/general/) Slack channel.
+  - Join the [Weave User Group](https://www.meetup.com/pro/Weave/) and get invited to online talks, hands-on training and meetups in your area.
+- [File an issue](https://github.com/weaveworks/footloose/issues/new).
+
+Your feedback is always welcome!

@@ -21,12 +21,12 @@ if [ $# -lt 2 ]; then
   echo
   echo "ARGS are VERB-specific optional arguments"
   echo "  • tag requires a version"
-  echo "  • push takes an option version, defaults to 'latest' "
+  echo "  • push takes an optional version, defaults to 'latest' "
   echo
   echo "Examples:"
   echo "  • $0 build all"
-  echo "  • $0 tag 0.2.0"
-  echo "  • $0 push 0.2.0"
+  echo "  • $0 tag all 0.2.0"
+  echo "  • $0 push all 0.2.0"
   exit 1
 fi
 
@@ -73,7 +73,7 @@ tag)
 
 push)
   version=latest
-  [ -n "$1" ] && version=$1
+  [ $# == 1 ] && version=$1
   for image in $images; do
     echo "  • Pushing $org/$image:$version"
     docker push $org/$image:$version
