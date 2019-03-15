@@ -19,9 +19,7 @@ matrix:
 deploy:
 - provider: script
   skip_cleanup: true
-  script:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin quay.io
-  - ./make-image.sh push all
+  script: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" quay.io && ./make-image.sh push all
 - provider: script
   skip_cleanup: true
   script: curl -sL https://git.io/goreleaser | bash
