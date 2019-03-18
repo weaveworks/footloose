@@ -39,8 +39,6 @@ RUN systemctl enable ssh.service
 # https://www.freedesktop.org/wiki/Software/systemd/ContainerInterface/
 STOPSIGNAL SIGRTMIN+3
 
-VOLUME [ "/sys/fs/cgroup" ]
-
 # Read this described bug here: https://askubuntu.com/questions/1110828/ssh-failed-to-start-missing-privilege-separation-directory-var-run-sshd
 # And here: https://bugs.launchpad.net/ubuntu/+source/systemd/+bug/1811580
 VOLUME [ "/var/run/sshd" ]
