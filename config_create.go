@@ -39,6 +39,9 @@ func init() {
 	privileged := &defaultConfig.Machines[0].Spec.Privileged
 	configCreateCmd.PersistentFlags().BoolVar(privileged, "privileged", *privileged, "Create privileged containers")
 
+	cmd := &defaultConfig.Machines[0].Spec.Cmd
+	configCreateCmd.PersistentFlags().StringVarP(cmd, "cmd", "d", *cmd, "The command to execute on the container")
+
 	configCmd.AddCommand(configCreateCmd)
 }
 
