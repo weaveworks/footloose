@@ -13,7 +13,7 @@ RUN find /etc/systemd/system \
 
 RUN apt-get update && \
     apt-get install -y \
-    dbus systemd openssh-server openssh-client supervisor && \
+    dbus systemd openssh-server openssh-client supervisor net-tools iproute2 iputils-ping curl wget vim-tiny && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
