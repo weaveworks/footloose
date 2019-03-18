@@ -12,3 +12,4 @@ machines:
     portMappings:
     - containerPort: 22
     privileged: true
+    cmd: /usr/bin/supervisord
