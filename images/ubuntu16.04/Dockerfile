@@ -1,8 +1,16 @@
 FROM ubuntu:16.04
 
 ENV container docker
+ENV LC_ALL C
+ENV DEBIAN_FRONTEND noninteractive
 
-# Don't start any optional services except for the few we need.
+RUN sed -i 's/# deb/deb/g' /etc/apt/sources.list
+
+RUN apt-get update \
+    && apt-get install -y systemd dbus openssh-client openssh-server net-tools iproute2 iputils-ping curl wget vim-tiny\
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 RUN find /etc/systemd/system \
     /lib/systemd/system \
     -path '*.wants/*' \
@@ -10,12 +18,6 @@ RUN find /etc/systemd/system \
     -not -name '*systemd-tmpfiles*' \
     -not -name '*systemd-user-sessions*' \
     -exec rm \{} \;
-
-RUN apt-get update && \
-    apt-get install -y \
-    dbus systemd openssh-server openssh-client supervisor net-tools iproute2 iputils-ping curl wget vim-tiny && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
 
 EXPOSE 22
 
@@ -27,16 +29,20 @@ RUN systemctl mask \
       systemd-tmpfiles-setup.service \
       console-getty.service
 
-RUN mkdir -p /var/run/sshd /var/log/supervisor
-
 # This container image doesn't have locales installed. Disable forwarding the
 # user locale env variables or we get warnings such as:
 #  bash: warning: setlocale: LC_ALL: cannot change locale
 RUN sed -i -e 's/^AcceptEnv LANG LC_\*$/#AcceptEnv LANG LC_*/' /etc/ssh/sshd_config
-RUN sed -i -e 's/^PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+RUN systemctl enable ssh.service
 
 # https://www.freedesktop.org/wiki/Software/systemd/ContainerInterface/
 STOPSIGNAL SIGRTMIN+3
 
-CMD ["/usr/bin/supervisord"]
+VOLUME [ "/sys/fs/cgroup" ]
+
+# Read this described bug here: https://askubuntu.com/questions/1110828/ssh-failed-to-start-missing-privilege-separation-directory-var-run-sshd
+# And here: https://bugs.launchpad.net/ubuntu/+source/systemd/+bug/1811580
+VOLUME [ "/var/run/sshd" ]
+
+CMD ["/lib/systemd/systemd"]
