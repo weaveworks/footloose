@@ -7,7 +7,7 @@ machines:
     volumes:
     - type: volume
       destination: /var/lib/docker
-    image: docker.io/skarlso/footloose:ubuntu16
+    image: quay.io/footloose/ubuntu16.04
     name: node%d
     portMappings:
     - containerPort: 22
