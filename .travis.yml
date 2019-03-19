@@ -22,7 +22,7 @@ deploy:
   script: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" quay.io && ./make-image.sh push all
 - provider: script
   skip_cleanup: true
-  script: ./make-image.sh tag all $TRAVIS_TAG && ./make-image.sh push all $TRAVIS_TAG
+  script: docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" quay.io && ./make-image.sh tag all $TRAVIS_TAG && ./make-image.sh push all $TRAVIS_TAG
   on:
     tags: true
 - provider: script
