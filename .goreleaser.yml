@@ -6,6 +6,9 @@ builds:
   - CGO_ENABLED=0
 archive:
   format: binary
+  format_overrides:
+    - goos: darwin
+      format: tar.gz
   name_template: "footloose-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
   replacements:
     386: i386
