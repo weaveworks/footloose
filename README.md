@@ -192,32 +192,32 @@ EXPOSE 80
 Build that image:
 
 ```console
-❯ docker built -t apache:test01 .
+$ docker built -t apache:test01 .
 ```
 
 Create a footloose configuration file.
 
 ```console
-❯ footloose config create --image apache:test01
+$ footloose config create --image apache:test01
 ```
 
-Now, lunch a machine!
+Now, create a machine!
 
 ```console
-❯ footloose create
+$ footloose create
 ```
 
 Once the machine is ready, you should be able to access apache on the exposed port.
 
 ```console
-❯ docker port cluster-node0 80
+$ docker port cluster-node0 80
 0.0.0.0:32824
-❯ curl 0.0.0.0:32824
+$ curl 0.0.0.0:32824
 <!DOCTYPE html>
 <html>
-    <title>Test Page</title>
+    <title>Footloose</title>
     <body>
-        This is the body
+        Hello, from footloose!
     </body>
 </html>
 ```
@@ -225,10 +225,10 @@ Once the machine is ready, you should be able to access apache on the exposed po
 In case of multiple machines the port will be different on each machine.
 
 ```console
-❯ docker port cluster-node1 80
+$ docker port cluster-node1 80
 0.0.0.0:32828
 
-❯ docker port cluster-node0 80
+$ docker port cluster-node0 80
 0.0.0.0:32826
 ```
 
