@@ -24,19 +24,33 @@ with containers.
 
 `footloose` binaries can be downloaded from the [release page][gh-release]:
 
-```console
-# For Linux
-curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.2.0/footloose-0.2.0-linux-x86_64
-chmod +x footloose
-sudo mv footloose /usr/local/bin/
+### Linux
 
-# For macOS
-curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.2.0/footloose-0.2.0-darwin-x86_64
+```console
+curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.3.0/footloose-0.3.0-linux-x86_64
 chmod +x footloose
 sudo mv footloose /usr/local/bin/
 ```
 
-Alternatively, build and install `footloose` from sources. It requires having
+### macOS
+
+On macOS we provide a direct download and a homebrew tap:
+
+```console
+curl --silent --location https://github.com/weaveworks/footloose/releases/download/0.3.0/footloose-0.3.0-darwin-x86_64.tar.gz | tar xz
+sudo mv footloose /usr/local/bin
+```
+
+or
+
+```console
+brew tap weaveworks/tap
+brew install weaveworks/tap/footloose
+```
+
+### From source
+
+Alternatively, build and install `footloose` from source. It requires having
 `go >= 1.11` installed:
 
 ```console
