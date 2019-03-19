@@ -136,7 +136,9 @@ available parameters are in [the reference documentation][pkg-config].
 
 Interesting things can be done with `footloose`!
 
-To see some of the use cases, please refer to the Example's [README](./examples/README.md).
+* [Customize the OS image](./examples/fedora29-htop/README.md)
+* [Ansible example](./examples/ansible/README.md)
+* [Run Apache in a footloose machine](./examples/apache/README.md)
 
 ## Running `dockerd` in Container Machines
 
