@@ -12,14 +12,14 @@ var listCmd = &cobra.Command{
 }
 
 var listOptions struct {
-	json   bool
-	all    bool
+	format string
 	config string
+	all    bool
 }
 
 func init() {
 	listCmd.Flags().StringVarP(&listOptions.config, "config", "c", Footloose, "Cluster configuration file")
-	listCmd.Flags().BoolVar(&listOptions.json, "json", false, "--json")
+	listCmd.Flags().StringVarP(&listOptions.format, "format", "f", "default", "Formatting options")
 	listCmd.Flags().BoolVar(&listOptions.all, "all", false, "List all footloose created machines in every cluster.")
 	footloose.AddCommand(listCmd)
 }
@@ -32,5 +32,5 @@ func list(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return cluster.List(listOptions.all, listOptions.json)
+	return cluster.List(listOptions.all, listOptions.format)
 }
