@@ -162,6 +162,8 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []string {
 	runArgs := []string{
 		"-it", "-d", "--rm",
+		"--label", "org.weaveworks.owner=footloose",
+		"--label", "org.weaveworks.cluster=" + c.spec.Cluster.Name,
 		"--name", name,
 		"--hostname", machine.Hostname(),
 		"--tmpfs", "/run",
@@ -230,6 +232,40 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 // Delete deletes the cluster.
 func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
+}
+
+// List will generate an output for each machine.
+func (c *Cluster) List(all, json bool) error {
+	if all {
+		log.Info("Listing all machines in every cluster.")
+	}
+	var machines []*Machine
+	if !all {
+		machines = c.gatherAllMachinesInCluster()
+	} else {
+		machines = c.gatherAllMachines()
+	}
+
+	return c.displayInfo(machines, json)
+}
+
+func (c *Cluster) displayInfo(machines []*Machine, json bool) error {
+	return nil
+}
+
+func (c *Cluster) gatherAllMachinesInCluster() (machines []*Machine) {
+	for _, template := range c.spec.Machines {
+		for i := 0; i < template.Count; i++ {
+			machine := c.machine(&template.Spec, i)
+			machines = append(machines, machine)
+		}
+	}
+	return
+}
+
+func (c *Cluster) gatherAllMachines() (machines []*Machine) {
+	// range through docker list --label owner
+	return
 }
 
 // io.Writer filter that writes that it receives to writer. Keeps track if it
