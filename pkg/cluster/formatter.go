@@ -30,10 +30,11 @@ type port struct {
 }
 
 type status struct {
-	Name   string         `json:"name"`
-	Spec   config.Machine `json:"spec"`
-	Status string         `json:"status"`
-	Ports  []port         `json:"ports"`
+	Name     string         `json:"name"`
+	Spec     config.Machine `json:"spec"`
+	Status   string         `json:"status"`
+	Ports    []port         `json:"ports"`
+	Hostname string         `json:"hostname"`
 }
 
 // Format will output to stdout in JSON format.
@@ -41,6 +42,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	var statuses []status
 	for _, m := range machines {
 		s := status{}
+		s.Hostname = m.hostname
 		s.Name = m.ContainerName()
 		s.Spec = *m.spec
 		state := "Stopped"
@@ -75,7 +77,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 // Format will output to stdout in table format.
 func (NormalFormatter) Format(machines []*Machine) error {
 	table := termtables.CreateTable()
-	table.AddHeaders("Name", "Ports", "Image", "Cmd", "Volumes", "State")
+	table.AddHeaders("Name", "Hostname", "Ports", "Image", "Cmd", "Volumes", "State")
 	for _, m := range machines {
 		state := "Stopped"
 		if m.IsRunning() {
@@ -93,7 +95,7 @@ func (NormalFormatter) Format(machines []*Machine) error {
 			volumes = append(volumes, vf)
 		}
 		vs := strings.Join(volumes, ",")
-		table.AddRow(m.ContainerName(), ps, m.spec.Image, m.spec.Cmd, vs, state)
+		table.AddRow(m.ContainerName(), m.Hostname, ps, m.spec.Image, m.spec.Cmd, vs, state)
 	}
 	fmt.Println(table.Render())
 	return nil
