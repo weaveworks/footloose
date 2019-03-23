@@ -293,6 +293,7 @@ func (c *Cluster) gatherMachines(all bool) (machines []*Machine) {
 					Type:        string(mount.Type),
 					Source:      mount.Source,
 					Destination: mount.Destination,
+					ReadOnly:    mount.RW,
 				}
 				volumes = append(volumes, v)
 			}
