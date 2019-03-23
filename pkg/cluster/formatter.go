@@ -24,16 +24,20 @@ type JSONFormatter struct{}
 // table like output and prints that to stdout.
 type NormalFormatter struct{}
 
+type port struct {
+	Guest int `json:"guest"`
+	Host  int `json:"host"`
+}
+
 type status struct {
 	Name   string         `json:"name"`
 	Spec   config.Machine `json:"spec"`
 	Status string         `json:"status"`
+	Ports  []port         `json:"ports"`
 }
 
 // Format will output to stdout in JSON format.
 func (JSONFormatter) Format(machines []*Machine) error {
-	// TODO : now that I switched over to completely using the api
-	// I need to fix this one too to the correct format.
 	var statuses []status
 	for _, m := range machines {
 		s := status{}
@@ -44,6 +48,15 @@ func (JSONFormatter) Format(machines []*Machine) error {
 			state = "Running"
 		}
 		s.Status = state
+		var ports []port
+		for k, v := range m.ports {
+			p := port{
+				Host:  v,
+				Guest: k,
+			}
+			ports = append(ports, p)
+		}
+		s.Ports = ports
 		statuses = append(statuses, s)
 	}
 	m := struct {
