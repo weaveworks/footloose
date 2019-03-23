@@ -247,8 +247,6 @@ func (c *Cluster) List(all bool, format string) error {
 	return formatter.Format(machines)
 }
 
-// TODO: Consider only running ones? Or include status with obvious
-// visible color.
 func (c *Cluster) gatherMachines(all bool) (machines []*Machine) {
 	if !all {
 		for _, template := range c.spec.Machines {
