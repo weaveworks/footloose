@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -8,6 +9,9 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
@@ -255,7 +259,49 @@ func (c *Cluster) gatherMachines(all bool) (machines []*Machine) {
 				machines = append(machines, machine)
 			}
 		}
+	} else {
+		cli, err := client.NewEnvClient()
+		if err != nil {
+			log.Error(err.Error())
+			return []*Machine{}
+		}
+
+		args := filters.NewArgs()
+		args.Add("label", "org.weaveworks.owner=footloose")
+		containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
+			Filters: args,
+		})
+		if err != nil {
+			log.Error(err.Error())
+			return []*Machine{}
+		}
+
+		for _, container := range containers {
+			m := Machine{}
+			spec := config.Machine{}
+			m.name = container.Names[0]
+			ports := make(map[int]int)
+			for _, p := range container.Ports {
+				ports[int(p.PrivatePort)] = int(p.PublicPort)
+			}
+			m.ports = ports
+			spec.Cmd = container.Command
+			spec.Image = container.Image
+			var volumes []config.Volume
+			for _, mount := range container.Mounts {
+				v := config.Volume{
+					Type:        string(mount.Type),
+					Source:      mount.Source,
+					Destination: mount.Destination,
+				}
+				volumes = append(volumes, v)
+			}
+			spec.Volumes = volumes
+			m.spec = &spec
+			machines = append(machines, &m)
+		}
 	}
+
 	return
 }
 
