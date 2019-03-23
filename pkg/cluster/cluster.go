@@ -1,8 +1,6 @@
 package cluster
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -236,43 +234,6 @@ func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
 }
 
-// Formatter formats a slice of machines and outputs the result
-// in a given format.
-type Formatter interface {
-	Format([]*Machine) error
-}
-
-// JSONFormatter formats a slice of machines into a JSON and
-// outputs it to stdout.
-type JSONFormatter struct{}
-
-// NormalFormatter formats a slice of machines into a colored
-// table like output and prints that to stdout.
-type NormalFormatter struct{}
-
-// Format will output to stdout in JSON format.
-func (JSONFormatter) Format(machines []*Machine) error {
-	m := struct {
-		Machines []*Machine
-	}{
-		Machines: machines,
-	}
-	ms, err := json.Marshal(m)
-	if err != nil {
-		return err
-	}
-	log.Infof("%s", ms)
-	return nil
-}
-
-// Format will output to stdout in table format.
-func (NormalFormatter) Format(machines []*Machine) error {
-	for _, m := range machines {
-		log.Infof("%#v", m)
-	}
-	return nil
-}
-
 // List will generate an output for each machine.
 func (c *Cluster) List(all bool, format string) error {
 	if all {
@@ -298,19 +259,6 @@ func (c *Cluster) gatherMachines(all bool) (machines []*Machine) {
 		}
 	}
 	return
-}
-
-func getFormatter(format string) (Formatter, error) {
-	var formatter Formatter
-	switch format {
-	case "json":
-		formatter = new(JSONFormatter)
-	case "default":
-		formatter = new(NormalFormatter)
-	default:
-		return nil, errors.New("unrecognised formatting method")
-	}
-	return formatter, nil
 }
 
 // io.Writer filter that writes that it receives to writer. Keeps track if it
