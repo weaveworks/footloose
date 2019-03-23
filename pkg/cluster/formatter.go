@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/apcera/termtables"
 	"github.com/weaveworks/footloose/pkg/config"
@@ -25,18 +26,18 @@ type NormalFormatter struct{}
 
 type status struct {
 	Name   string         `json:"name"`
-	Ports  machineCache   `json:"ports"`
 	Spec   config.Machine `json:"spec"`
 	Status string         `json:"status"`
 }
 
 // Format will output to stdout in JSON format.
 func (JSONFormatter) Format(machines []*Machine) error {
+	// TODO : now that I switched over to completely using the api
+	// I need to fix this one too to the correct format.
 	var statuses []status
 	for _, m := range machines {
 		s := status{}
 		s.Name = m.ContainerName()
-		s.Ports = m.machineCache
 		s.Spec = *m.spec
 		state := "Stopped"
 		if m.IsRunning() {
@@ -61,13 +62,25 @@ func (JSONFormatter) Format(machines []*Machine) error {
 // Format will output to stdout in table format.
 func (NormalFormatter) Format(machines []*Machine) error {
 	table := termtables.CreateTable()
-	table.AddHeaders("Name", "Ports", "State")
+	table.AddHeaders("Name", "Ports", "Image", "Cmd", "Volumes", "State")
 	for _, m := range machines {
 		state := "Stopped"
 		if m.IsRunning() {
 			state = "Running"
 		}
-		table.AddRow(m.ContainerName(), "22", state)
+		var ports []string
+		for k, v := range m.ports {
+			p := fmt.Sprintf("%d->%d", k, v)
+			ports = append(ports, p)
+		}
+		ps := strings.Join(ports, ",")
+		var volumes []string
+		for _, v := range m.spec.Volumes {
+			vf := fmt.Sprintf("%s->%s", v.Source, v.Destination)
+			volumes = append(volumes, vf)
+		}
+		vs := strings.Join(volumes, ",")
+		table.AddRow(m.ContainerName(), ps, m.spec.Image, m.spec.Cmd, vs, state)
 	}
 	fmt.Println(table.Render())
 	return nil
