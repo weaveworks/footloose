@@ -240,9 +240,6 @@ func (c *Cluster) Delete() error {
 
 // List will generate an output for each machine.
 func (c *Cluster) List(all bool, format string) error {
-	if all {
-		log.Info("Listing all machines in every cluster.")
-	}
 	machines := c.gatherMachines(all)
 	formatter, err := getFormatter(format)
 	if err != nil {
