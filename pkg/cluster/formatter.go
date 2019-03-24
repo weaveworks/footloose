@@ -88,6 +88,12 @@ func (NormalFormatter) Format(machines []*Machine) error {
 			p := fmt.Sprintf("%d->%d", k, v)
 			ports = append(ports, p)
 		}
+		if len(ports) < 1 {
+			for _, p := range m.spec.PortMappings {
+				port := fmt.Sprintf("%d->%d", p.ContainerPort, 0)
+				ports = append(ports, port)
+			}
+		}
 		ps := strings.Join(ports, ",")
 		var volumes []string
 		for _, v := range m.spec.Volumes {
