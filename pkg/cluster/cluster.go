@@ -240,7 +240,7 @@ func (c *Cluster) Delete() error {
 
 // List will generate an output for each machine.
 func (c *Cluster) List(all bool, format string) error {
-	machines := c.gatherMachines(all)
+	machines := c.gatherMachinesWithFallback(all)
 	formatter, err := getFormatter(format)
 	if err != nil {
 		return err
@@ -248,7 +248,17 @@ func (c *Cluster) List(all bool, format string) error {
 	return formatter.Format(machines)
 }
 
-func (c *Cluster) gatherMachines(all bool) (machines []*Machine) {
+func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine) {
+	machines = c.gatherMachinesByAPI(all)
+	// Footloose has no machines running. Falling back to display
+	// cluster related data.
+	if len(machines) < 1 {
+		machines = c.gatherMachinesByCluster()
+	}
+	return
+}
+
+func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		log.Error(err.Error())
@@ -260,7 +270,8 @@ func (c *Cluster) gatherMachines(all bool) (machines []*Machine) {
 	if !all {
 		args.Add("label", "org.weaveworks.cluster="+c.spec.Cluster.Name)
 	}
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{
+	ctx := context.Background()
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
 		Filters: args,
 	})
 	if err != nil {
@@ -272,6 +283,12 @@ func (c *Cluster) gatherMachines(all bool) (machines []*Machine) {
 		m := Machine{}
 		spec := config.Machine{}
 		m.name = container.Names[0]
+		inspect, err := cli.ContainerInspect(ctx, container.ID)
+		if err != nil {
+			log.Error(err.Error())
+			return []*Machine{}
+		}
+		m.hostname = inspect.Config.Hostname
 		ports := make(map[int]int)
 		for _, p := range container.Ports {
 			ports[int(p.PrivatePort)] = int(p.PublicPort)
@@ -292,6 +309,16 @@ func (c *Cluster) gatherMachines(all bool) (machines []*Machine) {
 		spec.Volumes = volumes
 		m.spec = &spec
 		machines = append(machines, &m)
+	}
+	return
+}
+
+func (c *Cluster) gatherMachinesByCluster() (machines []*Machine) {
+	for _, template := range c.spec.Machines {
+		for i := 0; i < template.Count; i++ {
+			machine := c.machine(&template.Spec, i)
+			machines = append(machines, machine)
+		}
 	}
 	return
 }

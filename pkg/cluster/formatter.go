@@ -39,10 +39,10 @@ type status struct {
 
 // Format will output to stdout in JSON format.
 func (JSONFormatter) Format(machines []*Machine) error {
-	var statuses []status
+	statuses := make([]status, 0)
 	for _, m := range machines {
 		s := status{}
-		s.Hostname = m.hostname
+		s.Hostname = m.Hostname()
 		s.Name = m.ContainerName()
 		s.Spec = *m.spec
 		state := "Stopped"
@@ -95,7 +95,7 @@ func (NormalFormatter) Format(machines []*Machine) error {
 			volumes = append(volumes, vf)
 		}
 		vs := strings.Join(volumes, ",")
-		table.AddRow(m.ContainerName(), m.Hostname, ps, m.spec.Image, m.spec.Cmd, vs, state)
+		table.AddRow(m.ContainerName(), m.hostname, ps, m.spec.Image, m.spec.Cmd, vs, state)
 	}
 	fmt.Println(table.Render())
 	return nil
