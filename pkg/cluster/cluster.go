@@ -240,7 +240,10 @@ func (c *Cluster) Delete() error {
 
 // List will generate an output for each machine.
 func (c *Cluster) List(all bool, format string) error {
-	machines := c.gatherMachinesWithFallback(all)
+	machines, err := c.gatherMachinesWithFallback(all)
+	if err != nil {
+		return err
+	}
 	formatter, err := getFormatter(format)
 	if err != nil {
 		return err
@@ -248,8 +251,11 @@ func (c *Cluster) List(all bool, format string) error {
 	return formatter.Format(machines)
 }
 
-func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine) {
-	machines = c.gatherMachinesByAPI(all)
+func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine, err error) {
+	machines, err = c.gatherMachinesByAPI(all)
+	if err != nil {
+		return []*Machine{}, err
+	}
 	// Footloose has no machines running. Falling back to display
 	// cluster related data.
 	if len(machines) < 1 {
@@ -258,11 +264,10 @@ func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine) {
 	return
 }
 
-func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine) {
+func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine, err error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
-		log.Error(err.Error())
-		return []*Machine{}
+		return []*Machine{}, err
 	}
 
 	args := filters.NewArgs()
@@ -275,8 +280,7 @@ func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine) {
 		Filters: args,
 	})
 	if err != nil {
-		log.Error(err.Error())
-		return []*Machine{}
+		return []*Machine{}, err
 	}
 
 	for _, container := range containers {
@@ -285,8 +289,7 @@ func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine) {
 		m.name = container.Names[0]
 		inspect, err := cli.ContainerInspect(ctx, container.ID)
 		if err != nil {
-			log.Error(err.Error())
-			return []*Machine{}
+			return []*Machine{}, err
 		}
 		m.hostname = inspect.Config.Hostname
 		ports := make(map[int]int)
