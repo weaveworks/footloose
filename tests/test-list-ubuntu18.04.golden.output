@@ -1,0 +1,7 @@
++-----------------------------+----------+-------+-------------------------------+-----+---------+---------+
+| Name                        | Hostname | Ports | Image                         | Cmd | Volumes | State   |
++-----------------------------+----------+-------+-------------------------------+-----+---------+---------+
+| test-list-ubuntu18.04-node0 | node0    | 22->0 | quay.io/footloose/ubuntu18.04 |     |         | Stopped |
++-----------------------------+----------+-------+-------------------------------+-----+---------+---------+
+
+{"machines":[{"name":"test-list-ubuntu18.04-node0","spec":{"name":"node%d","image":"quay.io/footloose/ubuntu18.04","portMappings":[{"containerPort":22}]},"status":"Stopped","ports":null,"hostname":"node0"}]}
