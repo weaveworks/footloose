@@ -1,0 +1,11 @@
+cluster:
+  name: cluster
+  privateKey: cluster-key
+machines:
+- count: 2
+  spec:
+    image: quay.io/footloose/centos7
+    name: node%d
+    portMappings:
+    - containerPort: 22
+      hostPort: 2222
