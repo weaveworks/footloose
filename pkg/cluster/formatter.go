@@ -101,7 +101,7 @@ func (NormalFormatter) Format(machines []*Machine) error {
 			volumes = append(volumes, vf)
 		}
 		vs := strings.Join(volumes, ",")
-		table.AddRow(m.ContainerName(), m.hostname, ps, m.spec.Image, m.spec.Cmd, vs, state)
+		table.AddRow(m.ContainerName(), m.Hostname(), ps, m.spec.Image, m.spec.Cmd, vs, state)
 	}
 	fmt.Println(table.Render())
 	return nil
