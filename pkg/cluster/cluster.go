@@ -238,8 +238,12 @@ func (c *Cluster) Delete() error {
 
 func (c *Cluster) startMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
+	if !machine.IsRunning() {
+		log.Infof("Machine with name %s isn't running...", name)
+		return nil
+	}
 	if machine.IsStarted() {
-		log.Infof("Machine with name %s is already running...", name)
+		log.Infof("Machine with name %s is already started...", name)
 		return nil
 	}
 	log.Infof("Starting machine: %s ...", name)
@@ -260,6 +264,10 @@ func (c *Cluster) Start() error {
 
 func (c *Cluster) stopMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
+	if !machine.IsRunning() {
+		log.Infof("Machine with name %s isn't running...", name)
+		return nil
+	}
 	if !machine.IsStarted() {
 		log.Infof("Machine with name %s is already stopped...", name)
 		return nil
