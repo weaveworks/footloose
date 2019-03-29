@@ -37,7 +37,10 @@ func init() {
 	configCreateCmd.PersistentFlags().StringVarP(image, "image", "i", *image, "Docker image to use in the containers")
 
 	privileged := &defaultConfig.Machines[0].Spec.Privileged
-	configCreateCmd.PersistentFlags().BoolVar(privileged, "privileged", *privileged, "Create privileged containers")
+	configCreateCmd.PersistentFlags().BoolVar(privileged, "privileged", false, "Create privileged containers")
+
+	persistent := &defaultConfig.Machines[0].Spec.Persistent
+	configCreateCmd.PersistentFlags().BoolVar(persistent, "persistent", *persistent, "Create persistent containers")
 
 	cmd := &defaultConfig.Machines[0].Spec.Cmd
 	configCreateCmd.PersistentFlags().StringVarP(cmd, "cmd", "d", *cmd, "The command to execute on the container")

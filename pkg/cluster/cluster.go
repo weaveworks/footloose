@@ -161,13 +161,17 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 
 func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []string {
 	runArgs := []string{
-		"-it", "-d", "--rm",
+		"-it", "-d",
 		"--name", name,
 		"--hostname", machine.Hostname(),
 		"--tmpfs", "/run",
 		"--tmpfs", "/run/lock",
 		"--tmpfs", "/tmp",
 		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
+	}
+
+	if machine.spec.Persistent == false {
+		runArgs = append(runArgs, "--rm")
 	}
 
 	for _, volume := range machine.spec.Volumes {
