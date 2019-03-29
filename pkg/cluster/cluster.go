@@ -227,8 +227,27 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 		log.Infof("Machine with name %s isn't running...", name)
 		return nil
 	}
+
+	if machine.spec.Persistent == false {
+		log.Infof("Deleting machine: %s ...", name)
+		return docker.Kill("KILL", name)
+	}
+
+	if machine.IsStarted() {
+		log.Infof("Machine with name %s is started, stopping and deleting machine...", name)
+		docker.Kill("KILL", name)
+		cmd := exec.Command(
+			"docker", "rm",
+			name,
+		)
+		return cmd.Run()
+	}
 	log.Infof("Deleting machine: %s ...", name)
-	return docker.Kill("KILL", name)
+	cmd := exec.Command(
+		"docker", "rm",
+		name,
+	)
+	return cmd.Run()
 }
 
 // Delete deletes the cluster.
@@ -264,6 +283,10 @@ func (c *Cluster) Start() error {
 
 func (c *Cluster) stopMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
+	if machine.spec.Persistent == false {
+		log.Infof("Stopping non-persistent machine %s will delete it...", name)
+		return docker.Kill("KILL", name)
+	}
 	if !machine.IsRunning() {
 		log.Infof("Machine with name %s isn't running...", name)
 		return nil
