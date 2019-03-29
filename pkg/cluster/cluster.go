@@ -236,6 +236,50 @@ func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
 }
 
+func (c *Cluster) startMachine(machine *Machine, i int) error {
+	name := machine.ContainerName()
+	if machine.IsStarted() {
+		log.Infof("Machine with name %s is already running...", name)
+		return nil
+	}
+	log.Infof("Starting machine: %s ...", name)
+
+	// Run command while sigs.k8s.io/kind/pkg/container/docker doesn't
+	// have a start command
+	cmd := exec.Command(
+		"docker", "start",
+		name,
+	)
+	return cmd.Run()
+}
+
+// Start starts the machines in cluster.
+func (c *Cluster) Start() error {
+	return c.forEachMachine(c.startMachine)
+}
+
+func (c *Cluster) stopMachine(machine *Machine, i int) error {
+	name := machine.ContainerName()
+	if !machine.IsStarted() {
+		log.Infof("Machine with name %s is already stopped...", name)
+		return nil
+	}
+	log.Infof("Stopping machine: %s ...", name)
+
+	// Run command while sigs.k8s.io/kind/pkg/container/docker doesn't
+	// have a start command
+	cmd := exec.Command(
+		"docker", "stop",
+		name,
+	)
+	return cmd.Run()
+}
+
+// Stop stops the machines in cluster.
+func (c *Cluster) Stop() error {
+	return c.forEachMachine(c.stopMachine)
+}
+
 // io.Writer filter that writes that it receives to writer. Keeps track if it
 // has seen a write matching regexp.
 type matchFilter struct {
