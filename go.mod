@@ -1,7 +1,7 @@
 module github.com/weaveworks/footloose
 
 require (
-	github.com/apcera/termtables v0.0.0-20170405184538-bcbc5dc54055
+	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
@@ -9,6 +9,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
+	github.com/olekukonko/tablewriter v0.0.1
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.3.0

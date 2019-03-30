@@ -166,8 +166,8 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []string {
 	runArgs := []string{
 		"-it", "-d", "--rm",
-		"--label", "org.weaveworks.owner=footloose",
-		"--label", "org.weaveworks.cluster=" + c.spec.Cluster.Name,
+		"--label", "works.weave.owner=footloose",
+		"--label", "works.weave.cluster=" + c.spec.Cluster.Name,
 		"--name", name,
 		"--hostname", machine.Hostname(),
 		"--tmpfs", "/run",
@@ -238,17 +238,28 @@ func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
 }
 
-// List will generate an output for each machine.
-func (c *Cluster) List(all bool, format string) error {
+// Show will generate an output for each machine.
+func (c *Cluster) Show(all bool, output string) error {
 	machines, err := c.gatherMachinesWithFallback(all)
 	if err != nil {
 		return err
 	}
-	formatter, err := getFormatter(format)
+	formatter, err := getFormatter(output)
 	if err != nil {
 		return err
 	}
 	return formatter.Format(machines)
+}
+
+// Inspect retrieves information about a single machine.
+func (c *Cluster) Inspect(node string, output string) error {
+	// TODO: Yeah, let's not use this. It's pretty ugly and too much info.
+	res, err := docker.Inspect(node, "{{json .}}")
+	if err != nil {
+		return err
+	}
+	fmt.Println(res[0])
+	return nil
 }
 
 func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine, err error) {

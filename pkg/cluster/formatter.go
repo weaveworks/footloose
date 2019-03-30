@@ -2,11 +2,11 @@ package cluster
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"os"
 	"strings"
 
-	"github.com/apcera/termtables"
+	"github.com/olekukonko/tablewriter"
 	"github.com/weaveworks/footloose/pkg/config"
 )
 
@@ -20,9 +20,9 @@ type Formatter interface {
 // outputs it to stdout.
 type JSONFormatter struct{}
 
-// NormalFormatter formats a slice of machines into a colored
+// TableFormatter formats a slice of machines into a colored
 // table like output and prints that to stdout.
-type NormalFormatter struct{}
+type TableFormatter struct{}
 
 type port struct {
 	Guest int `json:"guest"`
@@ -66,7 +66,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	}{
 		Machines: statuses,
 	}
-	ms, err := json.Marshal(m)
+	ms, err := json.MarshalIndent(m, "", "\t")
 	if err != nil {
 		return err
 	}
@@ -75,9 +75,9 @@ func (JSONFormatter) Format(machines []*Machine) error {
 }
 
 // Format will output to stdout in table format.
-func (NormalFormatter) Format(machines []*Machine) error {
-	table := termtables.CreateTable()
-	table.AddHeaders("Name", "Hostname", "Ports", "Image", "Cmd", "Volumes", "State")
+func (TableFormatter) Format(machines []*Machine) error {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Name", "Hostname", "Ports", "Image", "Cmd", "Volumes", "State"})
 	for _, m := range machines {
 		state := "Stopped"
 		if m.IsRunning() {
@@ -101,21 +101,25 @@ func (NormalFormatter) Format(machines []*Machine) error {
 			volumes = append(volumes, vf)
 		}
 		vs := strings.Join(volumes, ",")
-		table.AddRow(m.ContainerName(), m.Hostname(), ps, m.spec.Image, m.spec.Cmd, vs, state)
+		table.Append([]string{m.ContainerName(), m.Hostname(), ps, m.spec.Image, m.spec.Cmd, vs, state})
 	}
-	fmt.Println(table.Render())
+	table.SetBorder(false)
+	table.SetCenterSeparator("")
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.Render()
 	return nil
 }
 
-func getFormatter(format string) (Formatter, error) {
+func getFormatter(output string) (Formatter, error) {
 	var formatter Formatter
-	switch format {
+	switch output {
 	case "json":
 		formatter = new(JSONFormatter)
-	case "default":
-		formatter = new(NormalFormatter)
+	case "table":
+		formatter = new(TableFormatter)
 	default:
-		return nil, errors.New("unrecognised formatting method")
+		return nil, fmt.Errorf("unknown formatter '%s'", output)
 	}
 	return formatter, nil
 }
