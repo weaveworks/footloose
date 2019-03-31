@@ -3,9 +3,10 @@ package cluster
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/weaveworks/footloose/pkg/config"
 	"os"
 	"strings"
+
+	"github.com/weaveworks/footloose/pkg/config"
 
 	"github.com/olekukonko/tablewriter"
 )
@@ -30,14 +31,21 @@ type port struct {
 	Host  int `json:"host"`
 }
 
+const (
+	// Stopped status of a machine
+	Stopped = "Stopped"
+	// Running status of a machine
+	Running = "Running"
+)
+
 type status struct {
-	Name     string         `json:"name"`
-	State    string         `json:"state"`
+	Name     string          `json:"name"`
+	State    string          `json:"state"`
 	Spec     *config.Machine `json:"spec,omitempty"`
-	Ports    []port         `json:"ports"`
-	Hostname string         `json:"hostname"`
-	Image    string         `json:"image"`
-	Command  string         `json:"cmd"`
+	Ports    []port          `json:"ports"`
+	Hostname string          `json:"hostname"`
+	Image    string          `json:"image"`
+	Command  string          `json:"cmd"`
 }
 
 // Format will output to stdout in JSON format.
@@ -65,7 +73,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 		}
 		if len(ports) < 1 {
 			for _, p := range m.spec.PortMappings {
-				ports = append(ports, port{Host:int(p.ContainerPort), Guest:0})
+				ports = append(ports, port{Host: int(p.ContainerPort), Guest: 0})
 			}
 		}
 		s.Ports = ports
@@ -84,6 +92,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	return nil
 }
 
+// FormatSingle is a json formatter for a single machine.
 func (JSONFormatter) FormatSingle(m Machine) error {
 	s := status{}
 	s.Hostname = m.Hostname()
@@ -91,9 +100,9 @@ func (JSONFormatter) FormatSingle(m Machine) error {
 	s.Spec = m.spec
 	s.Image = s.Spec.Image
 	s.Command = s.Spec.Cmd
-	state := "Stopped"
+	state := Stopped
 	if m.IsRunning() {
-		state = "Running"
+		state = Running
 	}
 	s.State = state
 	var ports []port
@@ -118,9 +127,9 @@ func (TableFormatter) Format(machines []*Machine) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Name", "Hostname", "Ports", "Image", "Cmd", "State"})
 	for _, m := range machines {
-		state := "Stopped"
+		state := Stopped
 		if m.IsRunning() {
-			state = "Running"
+			state = Running
 		}
 		var ports []string
 		for k, v := range m.ports {
@@ -144,8 +153,10 @@ func (TableFormatter) Format(machines []*Machine) error {
 	return nil
 }
 
+// FormatSingle is a table formatter for a single machine.
 func (TableFormatter) FormatSingle(machine Machine) error {
-	return nil
+	jsonFormatter := JSONFormatter{}
+	return jsonFormatter.FormatSingle(machine)
 }
 
 func getFormatter(output string) (Formatter, error) {

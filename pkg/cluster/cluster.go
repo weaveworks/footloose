@@ -239,7 +239,7 @@ func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
 }
 
-// Show will generate an output for each machine.
+// Show will generate information about running or stopped machines.
 func (c *Cluster) Show(all bool, output string) error {
 	machines, err := c.gatherMachinesWithFallback(all)
 	if err != nil {
