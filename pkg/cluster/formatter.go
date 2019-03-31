@@ -75,7 +75,30 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	return nil
 }
 
-func (JSONFormatter) FormatSingle(machine Machine) error {
+func (JSONFormatter) FormatSingle(m Machine) error {
+	s := status{}
+	s.Hostname = m.Hostname()
+	s.Name = m.ContainerName()
+	s.Spec = *m.spec
+	state := "Stopped"
+	if m.IsRunning() {
+		state = "Running"
+	}
+	s.Status = state
+	var ports []port
+	for k, v := range m.ports {
+		p := port{
+			Host:  v,
+			Guest: k,
+		}
+		ports = append(ports, p)
+	}
+	s.Ports = ports
+	ms, err := json.MarshalIndent(s, "", "  ")
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s\n", ms)
 	return nil
 }
 
