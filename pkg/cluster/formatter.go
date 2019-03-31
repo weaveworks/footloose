@@ -66,11 +66,11 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	}{
 		Machines: statuses,
 	}
-	ms, err := json.MarshalIndent(m, "", "\t")
+	ms, err := json.MarshalIndent(m, "", "  ")
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s", ms)
+	fmt.Printf("%s\n", ms)
 	return nil
 }
 
