@@ -253,13 +253,20 @@ func (c *Cluster) Show(all bool, output string) error {
 
 // Inspect retrieves information about a single machine.
 func (c *Cluster) Inspect(node string, output string) error {
-	// TODO: Yeah, let's not use this. It's pretty ugly and too much info.
-	res, err := docker.Inspect(node, "{{json .}}")
+	machines, err := c.gatherMachinesWithFallback(false)
 	if err != nil {
 		return err
 	}
-	fmt.Println(res[0])
-	return nil
+	for _, m := range machines {
+		if m.name == node {
+			formatter, err := getFormatter(output)
+			if err != nil {
+				return err
+			}
+			return formatter.FormatSingle(*m)
+		}
+	}
+	return fmt.Errorf("machine with name %s not found", node)
 }
 
 func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine, err error) {
@@ -282,9 +289,9 @@ func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine, err error)
 	}
 
 	args := filters.NewArgs()
-	args.Add("label", "org.weaveworks.owner=footloose")
+	args.Add("label", "works.weave.owner=footloose")
 	if !all {
-		args.Add("label", "org.weaveworks.cluster="+c.spec.Cluster.Name)
+		args.Add("label", "works.weave.cluster="+c.spec.Cluster.Name)
 	}
 	ctx := context.Background()
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{

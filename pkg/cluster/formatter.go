@@ -14,6 +14,7 @@ import (
 // in a given format.
 type Formatter interface {
 	Format([]*Machine) error
+	FormatSingle(Machine) error
 }
 
 // JSONFormatter formats a slice of machines into a JSON and
@@ -74,6 +75,10 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	return nil
 }
 
+func (JSONFormatter) FormatSingle(machine Machine) error {
+	return nil
+}
+
 // Format will output to stdout in table format.
 func (TableFormatter) Format(machines []*Machine) error {
 	table := tablewriter.NewWriter(os.Stdout)
@@ -108,6 +113,10 @@ func (TableFormatter) Format(machines []*Machine) error {
 	table.SetColumnSeparator("")
 	table.SetRowSeparator("")
 	table.Render()
+	return nil
+}
+
+func (TableFormatter) FormatSingle (machine Machine) error {
 	return nil
 }
 
