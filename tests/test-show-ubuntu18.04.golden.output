@@ -1,22 +1,20 @@
-             NAME              HOSTNAME  PORTS              IMAGE              CMD  VOLUMES   STATE   
+             NAME              HOSTNAME  PORTS              IMAGE              CMD   STATE   
 
-  test-show-ubuntu18.04-node0  node0     22->0  quay.io/footloose/ubuntu18.04                Stopped  
+  test-show-ubuntu18.04-node0  node0     22->0  quay.io/footloose/ubuntu18.04       Stopped  
 {
   "machines": [
     {
       "name": "test-show-ubuntu18.04-node0",
-      "spec": {
-        "name": "node%d",
-        "image": "quay.io/footloose/ubuntu18.04",
-        "portMappings": [
-          {
-            "containerPort": 22
-          }
-        ]
-      },
-      "status": "Stopped",
-      "ports": null,
-      "hostname": "node0"
+      "state": "Stopped",
+      "ports": [
+        {
+          "guest": 0,
+          "host": 22
+        }
+      ],
+      "hostname": "node0",
+      "image": "quay.io/footloose/ubuntu18.04",
+      "cmd": ""
     }
   ]
 }

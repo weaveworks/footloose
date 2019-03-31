@@ -63,6 +63,11 @@ func (JSONFormatter) Format(machines []*Machine) error {
 			}
 			ports = append(ports, p)
 		}
+		if len(ports) < 1 {
+			for _, p := range m.spec.PortMappings {
+				ports = append(ports, port{Host:int(p.ContainerPort), Guest:0})
+			}
+		}
 		s.Ports = ports
 		statuses = append(statuses, s)
 	}
