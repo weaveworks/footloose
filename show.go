@@ -34,7 +34,7 @@ func show(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if len(args) > 0 {
-		return c.Inspect(args[0], showOptions.output)
+		return c.Inspect(args[0])
 	}
 	return c.Show(showOptions.all, showOptions.output)
 }

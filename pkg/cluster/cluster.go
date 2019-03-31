@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -252,14 +253,14 @@ func (c *Cluster) Show(all bool, output string) error {
 }
 
 // Inspect retrieves information about a single machine.
-func (c *Cluster) Inspect(node string, output string) error {
-	machines, err := c.gatherMachinesWithFallback(false)
+func (c *Cluster) Inspect(node string) error {
+	machines, err := c.gatherMachinesWithFallback(true)
 	if err != nil {
 		return err
 	}
 	for _, m := range machines {
-		if m.name == node {
-			formatter, err := getFormatter(output)
+		if strings.TrimPrefix(m.name, "/") == node {
+			formatter, err := getFormatter("json")
 			if err != nil {
 				return err
 			}

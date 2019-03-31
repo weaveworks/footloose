@@ -3,11 +3,11 @@ package cluster
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/weaveworks/footloose/pkg/config"
 	"os"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"github.com/weaveworks/footloose/pkg/config"
 )
 
 // Formatter formats a slice of machines and outputs the result
@@ -32,10 +32,12 @@ type port struct {
 
 type status struct {
 	Name     string         `json:"name"`
-	Spec     config.Machine `json:"spec"`
-	Status   string         `json:"status"`
+	State    string         `json:"state"`
+	Spec     *config.Machine `json:"spec,omitempty"`
 	Ports    []port         `json:"ports"`
 	Hostname string         `json:"hostname"`
+	Image    string         `json:"image"`
+	Command  string         `json:"cmd"`
 }
 
 // Format will output to stdout in JSON format.
@@ -45,12 +47,12 @@ func (JSONFormatter) Format(machines []*Machine) error {
 		s := status{}
 		s.Hostname = m.Hostname()
 		s.Name = m.ContainerName()
-		s.Spec = *m.spec
+		s.Spec = nil
 		state := "Stopped"
 		if m.IsRunning() {
 			state = "Running"
 		}
-		s.Status = state
+		s.State = state
 		var ports []port
 		for k, v := range m.ports {
 			p := port{
@@ -71,7 +73,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", ms)
+	fmt.Println(string(ms))
 	return nil
 }
 
@@ -79,12 +81,14 @@ func (JSONFormatter) FormatSingle(m Machine) error {
 	s := status{}
 	s.Hostname = m.Hostname()
 	s.Name = m.ContainerName()
-	s.Spec = *m.spec
+	s.Spec = m.spec
+	s.Image = s.Spec.Image
+	s.Command = s.Spec.Cmd
 	state := "Stopped"
 	if m.IsRunning() {
 		state = "Running"
 	}
-	s.Status = state
+	s.State = state
 	var ports []port
 	for k, v := range m.ports {
 		p := port{
@@ -105,7 +109,7 @@ func (JSONFormatter) FormatSingle(m Machine) error {
 // Format will output to stdout in table format.
 func (TableFormatter) Format(machines []*Machine) error {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "Hostname", "Ports", "Image", "Cmd", "Volumes", "State"})
+	table.SetHeader([]string{"Name", "Hostname", "Ports", "Image", "Cmd", "State"})
 	for _, m := range machines {
 		state := "Stopped"
 		if m.IsRunning() {
@@ -123,13 +127,7 @@ func (TableFormatter) Format(machines []*Machine) error {
 			}
 		}
 		ps := strings.Join(ports, ",")
-		var volumes []string
-		for _, v := range m.spec.Volumes {
-			vf := fmt.Sprintf("%s->%s", v.Source, v.Destination)
-			volumes = append(volumes, vf)
-		}
-		vs := strings.Join(volumes, ",")
-		table.Append([]string{m.ContainerName(), m.Hostname(), ps, m.spec.Image, m.spec.Cmd, vs, state})
+		table.Append([]string{m.ContainerName(), m.Hostname(), ps, m.spec.Image, m.spec.Cmd, state})
 	}
 	table.SetBorder(false)
 	table.SetCenterSeparator("")
@@ -139,7 +137,7 @@ func (TableFormatter) Format(machines []*Machine) error {
 	return nil
 }
 
-func (TableFormatter) FormatSingle (machine Machine) error {
+func (TableFormatter) FormatSingle(machine Machine) error {
 	return nil
 }
 
