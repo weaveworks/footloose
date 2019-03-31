@@ -47,6 +47,8 @@ func (JSONFormatter) Format(machines []*Machine) error {
 		s := status{}
 		s.Hostname = m.Hostname()
 		s.Name = m.ContainerName()
+		s.Image = m.spec.Image
+		s.Command = m.spec.Cmd
 		s.Spec = nil
 		state := "Stopped"
 		if m.IsRunning() {
