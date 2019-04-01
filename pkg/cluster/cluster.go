@@ -170,10 +170,6 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
-	if machine.spec.Persistent == false {
-		runArgs = append(runArgs, "--rm")
-	}
-
 	for _, volume := range machine.spec.Volumes {
 		mount := f("type=%s", volume.Type)
 		if volume.Source != "" {
@@ -228,11 +224,6 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 		return nil
 	}
 
-	if machine.spec.Persistent == false {
-		log.Infof("Deleting machine: %s ...", name)
-		return docker.Kill("KILL", name)
-	}
-
 	if machine.IsStarted() {
 		log.Infof("Machine with name %s is started, stopping and deleting machine...", name)
 		docker.Kill("KILL", name)
@@ -283,10 +274,7 @@ func (c *Cluster) Start() error {
 
 func (c *Cluster) stopMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
-	if machine.spec.Persistent == false {
-		log.Infof("Stopping non-persistent machine %s will delete it...", name)
-		return docker.Kill("KILL", name)
-	}
+
 	if !machine.IsRunning() {
 		log.Infof("Machine with name %s isn't running...", name)
 		return nil

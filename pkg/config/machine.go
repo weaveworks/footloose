@@ -44,9 +44,6 @@ type Machine struct {
 	// Privileged controls whether to start the Machine as a privileged container
 	// or not. Defaults to false.
 	Privileged bool `json:"privileged,omitempty"`
-	// Persistent defines if the Machine is a persistent container kept between
-	// stop/start cycles. Defaults to false.
-	Persistent bool `json:"persistent,omitempty"`
 	// Volumes is the list of volumes attached to this machine.
 	Volumes []Volume `json:"volumes,omitempty"`
 	// PortMappings is the list of ports to expose to the host.
