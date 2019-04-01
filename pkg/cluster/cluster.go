@@ -235,7 +235,10 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 
 	if machine.IsStarted() {
 		log.Infof("Machine with name %s is started, stopping and deleting machine...", name)
-		docker.Kill("KILL", name)
+		err := docker.Kill("KILL", name)
+		if err != nil {
+			return err
+		}
 		cmd := exec.Command(
 			"docker", "rm",
 			name,

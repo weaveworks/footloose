@@ -57,7 +57,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 		s.Name = m.ContainerName()
 		s.Image = m.spec.Image
 		s.Command = m.spec.Cmd
-		s.Spec = nil
+		s.Spec = m.spec
 		state := "Stopped"
 		if m.IsRunning() {
 			state = "Running"
@@ -93,33 +93,8 @@ func (JSONFormatter) Format(machines []*Machine) error {
 }
 
 // FormatSingle is a json formatter for a single machine.
-func (JSONFormatter) FormatSingle(m Machine) error {
-	s := status{}
-	s.Hostname = m.Hostname()
-	s.Name = m.ContainerName()
-	s.Spec = m.spec
-	s.Image = s.Spec.Image
-	s.Command = s.Spec.Cmd
-	state := Stopped
-	if m.IsRunning() {
-		state = Running
-	}
-	s.State = state
-	var ports []port
-	for k, v := range m.ports {
-		p := port{
-			Host:  v,
-			Guest: k,
-		}
-		ports = append(ports, p)
-	}
-	s.Ports = ports
-	ms, err := json.MarshalIndent(s, "", "  ")
-	if err != nil {
-		return err
-	}
-	fmt.Printf("%s\n", ms)
-	return nil
+func (js JSONFormatter) FormatSingle(m Machine) error {
+	return js.Format([]*Machine{&m})
 }
 
 // Format will output to stdout in table format.
