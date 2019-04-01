@@ -12,7 +12,7 @@ type Cluster struct {
 	Name string `json:"name"`
 
 	// PrivateKey is the path to the private SSH key used to login into the cluster
-	// machines.
+	// machines. Can be expanded to user homedir if ~ is found. Ex. ~/.ssh/id_rsa
 	PrivateKey string `json:"privateKey"`
 }
 

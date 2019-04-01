@@ -14,6 +14,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/ghodss/yaml"
+	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
 	"sigs.k8s.io/kind/pkg/docker"
@@ -96,7 +97,7 @@ func (c *Cluster) forEachMachine(do func(*Machine, int) error) error {
 }
 
 func (c *Cluster) ensureSSHKey() error {
-	path := os.ExpandEnv(c.spec.Cluster.PrivateKey)
+	path, _ := homedir.Expand(c.spec.Cluster.PrivateKey)
 	if _, err := os.Stat(path); err == nil {
 		return nil
 	}
@@ -121,7 +122,8 @@ touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 `
 
 func (c *Cluster) publicKey() ([]byte, error) {
-	return ioutil.ReadFile(os.ExpandEnv(c.spec.Cluster.PrivateKey) + ".pub")
+	path, _ := homedir.Expand(c.spec.Cluster.PrivateKey)
+	return ioutil.ReadFile(path + ".pub")
 }
 
 func (c *Cluster) createMachine(machine *Machine, i int) error {
@@ -506,11 +508,12 @@ func (c *Cluster) SSH(nodename string, username string, remoteArgs ...string) er
 	if mapping.Address != "" {
 		remote = mapping.Address
 	}
+	path, _ := homedir.Expand(c.spec.Cluster.PrivateKey)
 	args := []string{
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "IdentitiesOnly=yes",
-		"-i", os.ExpandEnv(c.spec.Cluster.PrivateKey),
+		"-i", path,
 		"-p", f("%d", hostPort),
 		"-l", username,
 		remote,
