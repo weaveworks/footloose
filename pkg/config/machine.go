@@ -21,7 +21,7 @@ type PortMapping struct {
 	// Protocol is the layer 4 protocol for this mapping. One of "tcp" or "udp".
 	// Defaults to "tcp".
 	Protocol string `json:"protocol,omitempty"`
-	// Address is the host addres to bind to. Defaults to "0.0.0.0".
+	// Address is the host address to bind to. Defaults to "0.0.0.0".
 	Address string `json:"address,omitempty"`
 	// HostPort is the base host port to map the containers ports to. As we
 	// configure a number of machine replicas, each machine will use HostPort+i

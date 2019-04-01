@@ -1,13 +1,18 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
 	"github.com/ghodss/yaml"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
@@ -162,6 +167,8 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []string {
 	runArgs := []string{
 		"-it", "-d",
+		"--label", "works.weave.owner=footloose",
+		"--label", "works.weave.cluster=" + c.spec.Cluster.Name,
 		"--name", name,
 		"--hostname", machine.Hostname(),
 		"--tmpfs", "/run",
@@ -244,6 +251,112 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 // Delete deletes the cluster.
 func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
+}
+
+// Show will generate information about running or stopped machines.
+func (c *Cluster) Show(all bool, output string) error {
+	machines, err := c.gatherMachinesWithFallback(all)
+	if err != nil {
+		return err
+	}
+	formatter, err := getFormatter(output)
+	if err != nil {
+		return err
+	}
+	return formatter.Format(machines)
+}
+
+// Inspect retrieves information about a single machine.
+func (c *Cluster) Inspect(node string) error {
+	machines, err := c.gatherMachinesWithFallback(true)
+	if err != nil {
+		return err
+	}
+	for _, m := range machines {
+		if strings.TrimPrefix(m.name, "/") == node {
+			formatter, err := getFormatter("json")
+			if err != nil {
+				return err
+			}
+			return formatter.FormatSingle(*m)
+		}
+	}
+	return fmt.Errorf("machine with name %s not found", node)
+}
+
+func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine, err error) {
+	machines, err = c.gatherMachinesByAPI(all)
+	if err != nil {
+		return []*Machine{}, err
+	}
+	// Footloose has no machines running. Falling back to display
+	// cluster related data.
+	if len(machines) < 1 {
+		machines = c.gatherMachinesByCluster()
+	}
+	return
+}
+
+func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine, err error) {
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		return []*Machine{}, err
+	}
+
+	args := filters.NewArgs()
+	args.Add("label", "works.weave.owner=footloose")
+	if !all {
+		args.Add("label", "works.weave.cluster="+c.spec.Cluster.Name)
+	}
+	ctx := context.Background()
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
+		Filters: args,
+	})
+	if err != nil {
+		return []*Machine{}, err
+	}
+
+	for _, container := range containers {
+		m := Machine{}
+		spec := config.Machine{}
+		m.name = container.Names[0]
+		inspect, err := cli.ContainerInspect(ctx, container.ID)
+		if err != nil {
+			return []*Machine{}, err
+		}
+		m.hostname = inspect.Config.Hostname
+		ports := make(map[int]int)
+		for _, p := range container.Ports {
+			ports[int(p.PrivatePort)] = int(p.PublicPort)
+		}
+		m.ports = ports
+		spec.Cmd = container.Command
+		spec.Image = container.Image
+		var volumes []config.Volume
+		for _, mount := range container.Mounts {
+			v := config.Volume{
+				Type:        string(mount.Type),
+				Source:      mount.Source,
+				Destination: mount.Destination,
+				ReadOnly:    mount.RW,
+			}
+			volumes = append(volumes, v)
+		}
+		spec.Volumes = volumes
+		m.spec = &spec
+		machines = append(machines, &m)
+	}
+	return
+}
+
+func (c *Cluster) gatherMachinesByCluster() (machines []*Machine) {
+	for _, template := range c.spec.Machines {
+		for i := 0; i < template.Count; i++ {
+			machine := c.machine(&template.Spec, i)
+			machines = append(machines, machine)
+		}
+	}
+	return
 }
 
 func (c *Cluster) startMachine(machine *Machine, i int) error {
