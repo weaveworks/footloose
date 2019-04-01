@@ -96,7 +96,7 @@ func (c *Cluster) forEachMachine(do func(*Machine, int) error) error {
 }
 
 func (c *Cluster) ensureSSHKey() error {
-	path := c.spec.Cluster.PrivateKey
+	path := os.ExpandEnv(c.spec.Cluster.PrivateKey)
 	if _, err := os.Stat(path); err == nil {
 		return nil
 	}
@@ -121,7 +121,7 @@ touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 `
 
 func (c *Cluster) publicKey() ([]byte, error) {
-	return ioutil.ReadFile(c.spec.Cluster.PrivateKey + ".pub")
+	return ioutil.ReadFile(os.ExpandEnv(c.spec.Cluster.PrivateKey) + ".pub")
 }
 
 func (c *Cluster) createMachine(machine *Machine, i int) error {
@@ -510,7 +510,7 @@ func (c *Cluster) SSH(nodename string, username string, remoteArgs ...string) er
 		"-o", "UserKnownHostsFile=/dev/null",
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "IdentitiesOnly=yes",
-		"-i", c.spec.Cluster.PrivateKey,
+		"-i", os.ExpandEnv(c.spec.Cluster.PrivateKey),
 		"-p", f("%d", hostPort),
 		"-l", username,
 		remote,
