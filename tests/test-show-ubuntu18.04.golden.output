@@ -6,6 +6,15 @@
     {
       "name": "test-show-ubuntu18.04-node0",
       "state": "Stopped",
+      "spec": {
+        "name": "node%d",
+        "image": "quay.io/footloose/ubuntu18.04",
+        "portMappings": [
+          {
+            "containerPort": 22
+          }
+        ]
+      },
       "ports": [
         {
           "guest": 0,
