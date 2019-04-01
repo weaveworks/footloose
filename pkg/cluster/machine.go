@@ -47,6 +47,16 @@ func (m *Machine) IsRunning() bool {
 	return false
 }
 
+// IsStarted returns if a machine is currently started or not.
+func (m *Machine) IsStarted() bool {
+	res, _ := docker.Inspect(m.name, "{{.State.Running}}")
+	parsed, _ := strconv.ParseBool(strings.Trim(res[0], `'`))
+	if parsed {
+		return true
+	}
+	return false
+}
+
 // HostPort returns the host port corresponding to the given container port.
 func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 	// Use the cached version first.

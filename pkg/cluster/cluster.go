@@ -166,7 +166,7 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 
 func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []string {
 	runArgs := []string{
-		"-it", "-d", "--rm",
+		"-it", "-d",
 		"--label", "works.weave.owner=footloose",
 		"--label", "works.weave.cluster=" + c.spec.Cluster.Name,
 		"--name", name,
@@ -230,8 +230,22 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 		log.Infof("Machine with name %s isn't running...", name)
 		return nil
 	}
+
+	if machine.IsStarted() {
+		log.Infof("Machine with name %s is started, stopping and deleting machine...", name)
+		docker.Kill("KILL", name)
+		cmd := exec.Command(
+			"docker", "rm",
+			name,
+		)
+		return cmd.Run()
+	}
 	log.Infof("Deleting machine: %s ...", name)
-	return docker.Kill("KILL", name)
+	cmd := exec.Command(
+		"docker", "rm",
+		name,
+	)
+	return cmd.Run()
 }
 
 // Delete deletes the cluster.
@@ -343,6 +357,59 @@ func (c *Cluster) gatherMachinesByCluster() (machines []*Machine) {
 		}
 	}
 	return
+}
+
+func (c *Cluster) startMachine(machine *Machine, i int) error {
+	name := machine.ContainerName()
+	if !machine.IsRunning() {
+		log.Infof("Machine with name %s isn't running...", name)
+		return nil
+	}
+	if machine.IsStarted() {
+		log.Infof("Machine with name %s is already started...", name)
+		return nil
+	}
+	log.Infof("Starting machine: %s ...", name)
+
+	// Run command while sigs.k8s.io/kind/pkg/container/docker doesn't
+	// have a start command
+	cmd := exec.Command(
+		"docker", "start",
+		name,
+	)
+	return cmd.Run()
+}
+
+// Start starts the machines in cluster.
+func (c *Cluster) Start() error {
+	return c.forEachMachine(c.startMachine)
+}
+
+func (c *Cluster) stopMachine(machine *Machine, i int) error {
+	name := machine.ContainerName()
+
+	if !machine.IsRunning() {
+		log.Infof("Machine with name %s isn't running...", name)
+		return nil
+	}
+	if !machine.IsStarted() {
+		log.Infof("Machine with name %s is already stopped...", name)
+		return nil
+	}
+	log.Infof("Stopping machine: %s ...", name)
+
+	// Run command while sigs.k8s.io/kind/pkg/container/docker doesn't
+	// have a start command
+	cmd := exec.Command(
+		"docker", "stop",
+		name,
+	)
+	return cmd.Run()
+}
+
+// Stop stops the machines in cluster.
+func (c *Cluster) Stop() error {
+	return c.forEachMachine(c.stopMachine)
 }
 
 // io.Writer filter that writes that it receives to writer. Keeps track if it
