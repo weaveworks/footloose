@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/weaveworks/footloose/pkg/config"
@@ -50,11 +51,12 @@ type status struct {
 
 // Format will output to stdout in JSON format.
 func (JSONFormatter) Format(machines []*Machine) error {
-	statuses := make([]status, 0)
+	sortedNames := getSortedMachineNames(machines)
+	statusMap := make(map[string]status, 0)
 	for _, m := range machines {
 		s := status{}
 		s.Hostname = m.Hostname()
-		s.Name = m.ContainerName()
+		s.Name = strings.TrimPrefix(m.ContainerName(), "/")
 		s.Image = m.spec.Image
 		s.Command = m.spec.Cmd
 		s.Spec = m.spec
@@ -77,7 +79,11 @@ func (JSONFormatter) Format(machines []*Machine) error {
 			}
 		}
 		s.Ports = ports
-		statuses = append(statuses, s)
+		statusMap[s.Name] = s
+	}
+	var statuses []status
+	for _, name := range sortedNames {
+		statuses = append(statuses, statusMap[name])
 	}
 	m := struct {
 		Machines []status `json:"machines"`
@@ -92,15 +98,34 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	return nil
 }
 
+// getSortedMachineNames retrieves a sorted list of machine names.
+func getSortedMachineNames(machines []*Machine) (names []string) {
+	for _, m := range machines {
+		names = append(names, strings.TrimPrefix(m.name, "/"))
+	}
+	sort.Strings(names)
+	return
+}
+
 // FormatSingle is a json formatter for a single machine.
 func (js JSONFormatter) FormatSingle(m Machine) error {
 	return js.Format([]*Machine{&m})
+}
+
+type tableMachine struct {
+	Name     string
+	Hostname string
+	Ports    string
+	Image    string
+	Cmd      string
+	State    string
 }
 
 // Format will output to stdout in table format.
 func (TableFormatter) Format(machines []*Machine) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Name", "Hostname", "Ports", "Image", "Cmd", "State"})
+	machineMap := make(map[string]tableMachine)
 	for _, m := range machines {
 		state := Stopped
 		if m.IsRunning() {
@@ -118,7 +143,20 @@ func (TableFormatter) Format(machines []*Machine) error {
 			}
 		}
 		ps := strings.Join(ports, ",")
-		table.Append([]string{m.ContainerName(), m.Hostname(), ps, m.spec.Image, m.spec.Cmd, state})
+		tm := tableMachine{
+			Name:     strings.TrimPrefix(m.ContainerName(), "/"),
+			Hostname: m.Hostname(),
+			Ports:    ps,
+			Image:    m.spec.Image,
+			Cmd:      m.spec.Cmd,
+			State:    state,
+		}
+		machineMap[tm.Name] = tm
+	}
+	sortedNames := getSortedMachineNames(machines)
+	for _, name := range sortedNames {
+		m := machineMap[name]
+		table.Append([]string{m.Name, m.Hostname, m.Ports, m.Image, m.Cmd, m.State})
 	}
 	table.SetBorder(false)
 	table.SetCenterSeparator("")
