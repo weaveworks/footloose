@@ -301,6 +301,9 @@ func (c *Cluster) gatherMachinesWithFallback() (machines []*Machine, err error) 
 			// Set Ports
 			ports := make([]config.PortMapping, 0)
 			for k, v := range inspect.NetworkSettings.Ports {
+				if len(v) < 1 {
+					continue
+				}
 				p := config.PortMapping{}
 				hostPort, _ := strconv.Atoi(v[0].HostPort)
 				p.HostPort = uint16(k.Int())
