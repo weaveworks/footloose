@@ -259,7 +259,7 @@ func (c *Cluster) Delete() error {
 
 // Show will generate information about running or stopped machines.
 func (c *Cluster) Show(output string) error {
-	machines, err := c.gatherMachinesWithFallback()
+	machines, err := c.gatherMachines()
 	if err != nil {
 		return err
 	}
@@ -272,7 +272,7 @@ func (c *Cluster) Show(output string) error {
 
 // Inspect retrieves information about a single machine.
 func (c *Cluster) Inspect(node string) error {
-	machines, err := c.gatherMachinesWithFallback()
+	machines, err := c.gatherMachines()
 	if err != nil {
 		return err
 	}
@@ -288,7 +288,7 @@ func (c *Cluster) Inspect(node string) error {
 	return fmt.Errorf("machine with name %s not found", node)
 }
 
-func (c *Cluster) gatherMachinesWithFallback() (machines []*Machine, err error) {
+func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 	// Footloose has no machines running. Falling back to display
 	// cluster related data.
 	machines = c.gatherMachinesByCluster()
