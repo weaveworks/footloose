@@ -1,18 +1,17 @@
 package cluster
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/client"
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -290,63 +289,51 @@ func (c *Cluster) Inspect(node string) error {
 }
 
 func (c *Cluster) gatherMachinesWithFallback() (machines []*Machine, err error) {
-	machines, err = c.gatherMachinesByAPI()
-	if err != nil {
-		return []*Machine{}, err
-	}
 	// Footloose has no machines running. Falling back to display
 	// cluster related data.
-	if len(machines) < 1 {
-		machines = c.gatherMachinesByCluster()
+	machines = c.gatherMachinesByCluster()
+	for _, m := range machines {
+		if m.IsRunning() {
+			inspect, err := c.gatherMachineDetails(m.name)
+			if err != nil {
+				return machines, err
+			}
+			// Set Ports
+			ports := make(map[int]int)
+			for k, v := range inspect.NetworkSettings.Ports {
+				p, _ := strconv.Atoi(v[0].HostPort)
+				ports[k.Int()] = p
+			}
+			m.ports = ports
+			// Volumes
+			var volumes []config.Volume
+			for _, mount := range inspect.Mounts {
+				v := config.Volume{
+					Type:        string(mount.Type),
+					Source:      mount.Source,
+					Destination: mount.Destination,
+					ReadOnly:    mount.RW,
+				}
+				volumes = append(volumes, v)
+			}
+			m.spec.Volumes = volumes
+			m.spec.Cmd = strings.Join(inspect.Config.Cmd, ",")
+		}
 	}
 	return
 }
 
-func (c *Cluster) gatherMachinesByAPI() (machines []*Machine, err error) {
-	cli, err := client.NewEnvClient()
+func (c *Cluster) gatherMachineDetails(name string) (container types.ContainerJSON, err error) {
+	res, err := docker.Inspect(name, "{{json .}}")
 	if err != nil {
-		return []*Machine{}, err
+		return container, err
 	}
-
-	args := filters.NewArgs()
-	args.Add("label", "works.weave.owner=footloose")
-	ctx := context.Background()
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
-		Filters: args,
-	})
+	data := []byte(strings.Trim(res[0], "'"))
+	// Ignoring error as unmarshal fails with creation time. Which we don't
+	// care about here.
+	err = json.Unmarshal(data, &container)
 	if err != nil {
-		return []*Machine{}, err
-	}
-
-	for _, container := range containers {
-		m := Machine{}
-		spec := config.Machine{}
-		m.name = container.Names[0]
-		inspect, err := cli.ContainerInspect(ctx, container.ID)
-		if err != nil {
-			return []*Machine{}, err
-		}
-		m.hostname = inspect.Config.Hostname
-		ports := make(map[int]int)
-		for _, p := range container.Ports {
-			ports[int(p.PrivatePort)] = int(p.PublicPort)
-		}
-		m.ports = ports
-		spec.Cmd = container.Command
-		spec.Image = container.Image
-		var volumes []config.Volume
-		for _, mount := range container.Mounts {
-			v := config.Volume{
-				Type:        string(mount.Type),
-				Source:      mount.Source,
-				Destination: mount.Destination,
-				ReadOnly:    mount.RW,
-			}
-			volumes = append(volumes, v)
-		}
-		spec.Volumes = volumes
-		m.spec = &spec
-		machines = append(machines, &m)
+		return container, err
 	}
 	return
 }
