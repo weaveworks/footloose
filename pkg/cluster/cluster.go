@@ -259,8 +259,8 @@ func (c *Cluster) Delete() error {
 }
 
 // Show will generate information about running or stopped machines.
-func (c *Cluster) Show(all bool, output string) error {
-	machines, err := c.gatherMachinesWithFallback(all)
+func (c *Cluster) Show(output string) error {
+	machines, err := c.gatherMachinesWithFallback()
 	if err != nil {
 		return err
 	}
@@ -273,7 +273,7 @@ func (c *Cluster) Show(all bool, output string) error {
 
 // Inspect retrieves information about a single machine.
 func (c *Cluster) Inspect(node string) error {
-	machines, err := c.gatherMachinesWithFallback(true)
+	machines, err := c.gatherMachinesWithFallback()
 	if err != nil {
 		return err
 	}
@@ -289,8 +289,8 @@ func (c *Cluster) Inspect(node string) error {
 	return fmt.Errorf("machine with name %s not found", node)
 }
 
-func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine, err error) {
-	machines, err = c.gatherMachinesByAPI(all)
+func (c *Cluster) gatherMachinesWithFallback() (machines []*Machine, err error) {
+	machines, err = c.gatherMachinesByAPI()
 	if err != nil {
 		return []*Machine{}, err
 	}
@@ -302,7 +302,7 @@ func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine, err
 	return
 }
 
-func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine, err error) {
+func (c *Cluster) gatherMachinesByAPI() (machines []*Machine, err error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		return []*Machine{}, err
@@ -310,9 +310,6 @@ func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine, err error)
 
 	args := filters.NewArgs()
 	args.Add("label", "works.weave.owner=footloose")
-	if !all {
-		args.Add("label", "works.weave.cluster="+c.spec.Cluster.Name)
-	}
 	ctx := context.Background()
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
 		Filters: args,
