@@ -299,12 +299,16 @@ func (c *Cluster) gatherMachinesWithFallback() (machines []*Machine, err error) 
 				return machines, err
 			}
 			// Set Ports
-			ports := make(map[int]int)
+			ports := make([]config.PortMapping, 0)
 			for k, v := range inspect.NetworkSettings.Ports {
-				p, _ := strconv.Atoi(v[0].HostPort)
-				ports[k.Int()] = p
+				p := config.PortMapping{}
+				hostPort, _ := strconv.Atoi(v[0].HostPort)
+				p.HostPort = uint16(k.Int())
+				p.ContainerPort = uint16(hostPort)
+				p.Address = v[0].HostIP
+				ports = append(ports, p)
 			}
-			m.ports = ports
+			m.spec.PortMappings = ports
 			// Volumes
 			var volumes []config.Volume
 			for _, mount := range inspect.Mounts {
@@ -318,6 +322,7 @@ func (c *Cluster) gatherMachinesWithFallback() (machines []*Machine, err error) 
 			}
 			m.spec.Volumes = volumes
 			m.spec.Cmd = strings.Join(inspect.Config.Cmd, ",")
+			m.ip = inspect.NetworkSettings.IPAddress
 		}
 	}
 	return

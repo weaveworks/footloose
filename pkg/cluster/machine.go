@@ -20,8 +20,11 @@ type Machine struct {
 	spec *config.Machine
 
 	// container name.
-	name     string
+	name string
+	// container hostname.
 	hostname string
+	// container ip.
+	ip string
 
 	// Fields that are cached from the docker daemon.
 	machineCache

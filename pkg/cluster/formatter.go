@@ -116,6 +116,7 @@ type tableMachine struct {
 	Name     string
 	Hostname string
 	Ports    string
+	IP       string
 	Image    string
 	Cmd      string
 	State    string
@@ -124,7 +125,7 @@ type tableMachine struct {
 // Format will output to stdout in table format.
 func (TableFormatter) Format(machines []*Machine) error {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "Hostname", "Ports", "Image", "Cmd", "State"})
+	table.SetHeader([]string{"Name", "Hostname", "Ports", "IP", "Image", "Cmd", "State"})
 	machineMap := make(map[string]tableMachine)
 	for _, m := range machines {
 		state := Stopped
@@ -138,7 +139,7 @@ func (TableFormatter) Format(machines []*Machine) error {
 		}
 		if len(ports) < 1 {
 			for _, p := range m.spec.PortMappings {
-				port := fmt.Sprintf("%d->%d", p.ContainerPort, 0)
+				port := fmt.Sprintf("%d->%d", p.HostPort, p.ContainerPort)
 				ports = append(ports, port)
 			}
 		}
@@ -147,6 +148,7 @@ func (TableFormatter) Format(machines []*Machine) error {
 			Name:     strings.TrimPrefix(m.ContainerName(), "/"),
 			Hostname: m.Hostname(),
 			Ports:    ps,
+			IP:       m.ip,
 			Image:    m.spec.Image,
 			Cmd:      m.spec.Cmd,
 			State:    state,
@@ -156,7 +158,7 @@ func (TableFormatter) Format(machines []*Machine) error {
 	sortedNames := getSortedMachineNames(machines)
 	for _, name := range sortedNames {
 		m := machineMap[name]
-		table.Append([]string{m.Name, m.Hostname, m.Ports, m.Image, m.Cmd, m.State})
+		table.Append([]string{m.Name, m.Hostname, m.Ports, m.IP, m.Image, m.Cmd, m.State})
 	}
 	table.SetBorder(false)
 	table.SetCenterSeparator("")
