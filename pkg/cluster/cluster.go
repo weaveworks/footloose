@@ -338,8 +338,6 @@ func (c *Cluster) gatherMachineDetails(name string) (container types.ContainerJS
 		return container, err
 	}
 	data := []byte(strings.Trim(res[0], "'"))
-	// Ignoring error as unmarshal fails with creation time. Which we don't
-	// care about here.
 	err = json.Unmarshal(data, &container)
 	if err != nil {
 		return container, err
