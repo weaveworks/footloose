@@ -144,6 +144,9 @@ func (TableFormatter) Format(machines []*Machine) error {
 	table.SetCenterSeparator("")
 	table.SetColumnSeparator("")
 	table.SetRowSeparator("")
+	table.SetHeaderLine(false)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.Render()
 	return nil
 }

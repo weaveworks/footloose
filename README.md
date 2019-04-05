@@ -4,15 +4,14 @@
 
 # footloose
 
-`footloose` is a developer tool creating containers that look like virtual
-machines. Those containers run `systemd` as PID 1 and a ssh daemon that can
-be used to login into the container. Such "machines" behave very much like a
-VM, it's even possible to run [`dockerd` in them][readme-did] :)
+`footloose` creates containers that look like virtual machines. Those
+containers run `systemd` as PID 1 and a ssh daemon that can be used to login
+into the container. Such "machines" behave very much like a VM, it's even
+possible to run [`dockerd` in them][readme-did] :)
 
 `footloose` can be used for a variety of tasks, wherever you'd like virtual
-machines but don't want to wait for them to boot or need many of them. An
-easy way to think about it is: [Vagrant](https://www.vagrantup.com/), but
-with containers.
+machines but want fast boot times or need many of them. An easy way to think
+about it is: [Vagrant](https://www.vagrantup.com/), but with containers.
 
 `footloose` in action:
 
@@ -62,16 +61,15 @@ GO111MODULE=on go get github.com/weaveworks/footloose
 ## Usage
 
 `footloose` reads a description of the *Cluster* of *Machines* to create from a
-file, by default named `Footloose`. The `config` command helps with creating the
-initial config file:
+file, by default named `footloose.yaml`. The `config` command helps with
+creating the initial config file:
 
 ```console
-# Create a Footloose config file. Instruct we want to create 3 machines instead
-# of the default, 1.
+# Create a footloose.yaml config file. Instruct we want to create 3 machines.
 footloose config create --replicas 3
 ```
 
-Start the cluster of 3 machines:
+Start the cluster:
 
 ```console
 $ footloose create
