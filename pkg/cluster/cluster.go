@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -348,9 +349,16 @@ func (c *Cluster) gatherMachineDetails(name string) (container types.ContainerJS
 
 func (c *Cluster) gatherMachinesByCluster() (machines []*Machine) {
 	for _, template := range c.spec.Machines {
+		initialMachines := make(map[string]*Machine, 0)
+		names := make([]string, 0)
 		for i := 0; i < template.Count; i++ {
 			machine := c.machine(&template.Spec, i)
-			machines = append(machines, machine)
+			names = append(names, machine.name)
+			initialMachines[machine.name] = machine
+		}
+		sort.Strings(names)
+		for _, n := range names {
+			machines = append(machines, initialMachines[n])
 		}
 	}
 	return

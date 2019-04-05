@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/weaveworks/footloose/pkg/config"
@@ -51,8 +50,7 @@ type status struct {
 
 // Format will output to stdout in JSON format.
 func (JSONFormatter) Format(machines []*Machine) error {
-	sortedNames := getSortedMachineNames(machines)
-	statusMap := make(map[string]status, 0)
+	var statuses []status
 	for _, m := range machines {
 		s := status{}
 		s.Hostname = m.Hostname()
@@ -79,12 +77,9 @@ func (JSONFormatter) Format(machines []*Machine) error {
 			}
 		}
 		s.Ports = ports
-		statusMap[s.Name] = s
+		statuses = append(statuses, s)
 	}
-	var statuses []status
-	for _, name := range sortedNames {
-		statuses = append(statuses, statusMap[name])
-	}
+
 	m := struct {
 		Machines []status `json:"machines"`
 	}{
@@ -96,15 +91,6 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	}
 	fmt.Println(string(ms))
 	return nil
-}
-
-// getSortedMachineNames retrieves a sorted list of machine names.
-func getSortedMachineNames(machines []*Machine) (names []string) {
-	for _, m := range machines {
-		names = append(names, strings.TrimPrefix(m.name, "/"))
-	}
-	sort.Strings(names)
-	return
 }
 
 // FormatSingle is a json formatter for a single machine.
@@ -126,7 +112,6 @@ type tableMachine struct {
 func (TableFormatter) Format(machines []*Machine) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"Name", "Hostname", "Ports", "IP", "Image", "Cmd", "State"})
-	machineMap := make(map[string]tableMachine)
 	for _, m := range machines {
 		state := Stopped
 		if m.IsRunning() {
@@ -153,12 +138,7 @@ func (TableFormatter) Format(machines []*Machine) error {
 			Cmd:      m.spec.Cmd,
 			State:    state,
 		}
-		machineMap[tm.Name] = tm
-	}
-	sortedNames := getSortedMachineNames(machines)
-	for _, name := range sortedNames {
-		m := machineMap[name]
-		table.Append([]string{m.Name, m.Hostname, m.Ports, m.IP, m.Image, m.Cmd, m.State})
+		table.Append([]string{tm.Name, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State})
 	}
 	table.SetBorder(false)
 	table.SetCenterSeparator("")
