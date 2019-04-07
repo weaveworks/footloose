@@ -117,6 +117,12 @@ For example:
 footloose config create --replicas 3 --image quay.io/footloose/fedora29
 ```
 
+Ubuntu images need the `--privileged` flag:
+
+```console
+footloose config create --replicas 1 --image quay.io/footloose/ubuntu16.04 --privileged
+```
+
 ## `footloose.yaml`
 
 `footloose config create` creates a `footloose.yaml` configuration file that is then
