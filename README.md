@@ -56,6 +56,14 @@ Alternatively, build and install `footloose` from source. It requires having
 GO111MODULE=on go get github.com/weaveworks/footloose
 ```
 
+If you want a mutable copy of the source:
+
+```console
+git clone https://github.com/weaveworks/footloose ;# clone outside of GOPATH
+cd footloose ;# this is the mutable copy
+go install
+```
+
 [gh-release]: https://github.com/weaveworks/footloose/releases
 
 ## Usage
