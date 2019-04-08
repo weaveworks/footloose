@@ -347,7 +347,8 @@ func (c *Cluster) gatherMachineDetails(name string) (container types.ContainerJS
 func (c *Cluster) gatherMachinesByCluster() (machines []*Machine) {
 	for _, template := range c.spec.Machines {
 		for i := 0; i < template.Count; i++ {
-			machine := c.machine(&template.Spec, i)
+			s := template.Spec
+			machine := c.machine(&s, i)
 			machines = append(machines, machine)
 		}
 	}
