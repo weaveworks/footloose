@@ -50,11 +50,11 @@ type status struct {
 
 // Format will output to stdout in JSON format.
 func (JSONFormatter) Format(machines []*Machine) error {
-	statuses := make([]status, 0)
+	var statuses []status
 	for _, m := range machines {
 		s := status{}
 		s.Hostname = m.Hostname()
-		s.Name = m.ContainerName()
+		s.Name = strings.TrimPrefix(m.ContainerName(), "/")
 		s.Image = m.spec.Image
 		s.Command = m.spec.Cmd
 		s.Spec = m.spec
@@ -79,6 +79,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 		s.Ports = ports
 		statuses = append(statuses, s)
 	}
+
 	m := struct {
 		Machines []status `json:"machines"`
 	}{
@@ -97,10 +98,20 @@ func (js JSONFormatter) FormatSingle(m Machine) error {
 	return js.Format([]*Machine{&m})
 }
 
+type tableMachine struct {
+	Name     string
+	Hostname string
+	Ports    string
+	IP       string
+	Image    string
+	Cmd      string
+	State    string
+}
+
 // Format will output to stdout in table format.
 func (TableFormatter) Format(machines []*Machine) error {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "Hostname", "Ports", "Image", "Cmd", "State"})
+	table.SetHeader([]string{"Name", "Hostname", "Ports", "IP", "Image", "Cmd", "State"})
 	for _, m := range machines {
 		state := Stopped
 		if m.IsRunning() {
@@ -113,12 +124,21 @@ func (TableFormatter) Format(machines []*Machine) error {
 		}
 		if len(ports) < 1 {
 			for _, p := range m.spec.PortMappings {
-				port := fmt.Sprintf("%d->%d", p.ContainerPort, 0)
+				port := fmt.Sprintf("%d->%d", p.HostPort, p.ContainerPort)
 				ports = append(ports, port)
 			}
 		}
 		ps := strings.Join(ports, ",")
-		table.Append([]string{m.ContainerName(), m.Hostname(), ps, m.spec.Image, m.spec.Cmd, state})
+		tm := tableMachine{
+			Name:     strings.TrimPrefix(m.ContainerName(), "/"),
+			Hostname: m.Hostname(),
+			Ports:    ps,
+			IP:       m.ip,
+			Image:    m.spec.Image,
+			Cmd:      m.spec.Cmd,
+			State:    state,
+		}
+		table.Append([]string{tm.Name, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State})
 	}
 	table.SetBorder(false)
 	table.SetCenterSeparator("")

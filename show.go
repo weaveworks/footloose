@@ -9,19 +9,17 @@ var showCmd = &cobra.Command{
 	Use:   "show",
 	Short: "show all running machines",
 	RunE:  show,
-	Args: cobra.MaximumNArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 }
 
 var showOptions struct {
 	output string
 	config string
-	all    bool
 }
 
 func init() {
 	showCmd.Flags().StringVarP(&showOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	showCmd.Flags().StringVarP(&showOptions.output, "output", "o", "table", "Output options")
-	showCmd.Flags().BoolVar(&showOptions.all, "all", false, "show all footloose created machines in every cluster.")
 	footloose.AddCommand(showCmd)
 }
 
@@ -36,5 +34,5 @@ func show(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		return c.Inspect(args[0])
 	}
-	return c.Show(showOptions.all, showOptions.output)
+	return c.Show(showOptions.output)
 }

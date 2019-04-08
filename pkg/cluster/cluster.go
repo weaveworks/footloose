@@ -1,18 +1,17 @@
 package cluster
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/client"
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -259,8 +258,8 @@ func (c *Cluster) Delete() error {
 }
 
 // Show will generate information about running or stopped machines.
-func (c *Cluster) Show(all bool, output string) error {
-	machines, err := c.gatherMachinesWithFallback(all)
+func (c *Cluster) Show(output string) error {
+	machines, err := c.gatherMachines()
 	if err != nil {
 		return err
 	}
@@ -273,7 +272,7 @@ func (c *Cluster) Show(all bool, output string) error {
 
 // Inspect retrieves information about a single machine.
 func (c *Cluster) Inspect(node string) error {
-	machines, err := c.gatherMachinesWithFallback(true)
+	machines, err := c.gatherMachines()
 	if err != nil {
 		return err
 	}
@@ -289,67 +288,58 @@ func (c *Cluster) Inspect(node string) error {
 	return fmt.Errorf("machine with name %s not found", node)
 }
 
-func (c *Cluster) gatherMachinesWithFallback(all bool) (machines []*Machine, err error) {
-	machines, err = c.gatherMachinesByAPI(all)
-	if err != nil {
-		return []*Machine{}, err
-	}
+func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 	// Footloose has no machines running. Falling back to display
 	// cluster related data.
-	if len(machines) < 1 {
-		machines = c.gatherMachinesByCluster()
+	machines = c.gatherMachinesByCluster()
+	for _, m := range machines {
+		if m.IsRunning() {
+			inspect, err := c.gatherMachineDetails(m.name)
+			if err != nil {
+				return machines, err
+			}
+			// Set Ports
+			ports := make([]config.PortMapping, 0)
+			for k, v := range inspect.NetworkSettings.Ports {
+				if len(v) < 1 {
+					continue
+				}
+				p := config.PortMapping{}
+				hostPort, _ := strconv.Atoi(v[0].HostPort)
+				p.HostPort = uint16(k.Int())
+				p.ContainerPort = uint16(hostPort)
+				p.Address = v[0].HostIP
+				ports = append(ports, p)
+			}
+			m.spec.PortMappings = ports
+			// Volumes
+			var volumes []config.Volume
+			for _, mount := range inspect.Mounts {
+				v := config.Volume{
+					Type:        string(mount.Type),
+					Source:      mount.Source,
+					Destination: mount.Destination,
+					ReadOnly:    mount.RW,
+				}
+				volumes = append(volumes, v)
+			}
+			m.spec.Volumes = volumes
+			m.spec.Cmd = strings.Join(inspect.Config.Cmd, ",")
+			m.ip = inspect.NetworkSettings.IPAddress
+		}
 	}
 	return
 }
 
-func (c *Cluster) gatherMachinesByAPI(all bool) (machines []*Machine, err error) {
-	cli, err := client.NewEnvClient()
+func (c *Cluster) gatherMachineDetails(name string) (container types.ContainerJSON, err error) {
+	res, err := docker.Inspect(name, "{{json .}}")
 	if err != nil {
-		return []*Machine{}, err
+		return container, err
 	}
-
-	args := filters.NewArgs()
-	args.Add("label", "works.weave.owner=footloose")
-	if !all {
-		args.Add("label", "works.weave.cluster="+c.spec.Cluster.Name)
-	}
-	ctx := context.Background()
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{
-		Filters: args,
-	})
+	data := []byte(strings.Trim(res[0], "'"))
+	err = json.Unmarshal(data, &container)
 	if err != nil {
-		return []*Machine{}, err
-	}
-
-	for _, container := range containers {
-		m := Machine{}
-		spec := config.Machine{}
-		m.name = container.Names[0]
-		inspect, err := cli.ContainerInspect(ctx, container.ID)
-		if err != nil {
-			return []*Machine{}, err
-		}
-		m.hostname = inspect.Config.Hostname
-		ports := make(map[int]int)
-		for _, p := range container.Ports {
-			ports[int(p.PrivatePort)] = int(p.PublicPort)
-		}
-		m.ports = ports
-		spec.Cmd = container.Command
-		spec.Image = container.Image
-		var volumes []config.Volume
-		for _, mount := range container.Mounts {
-			v := config.Volume{
-				Type:        string(mount.Type),
-				Source:      mount.Source,
-				Destination: mount.Destination,
-				ReadOnly:    mount.RW,
-			}
-			volumes = append(volumes, v)
-		}
-		spec.Volumes = volumes
-		m.spec = &spec
-		machines = append(machines, &m)
+		return container, err
 	}
 	return
 }
