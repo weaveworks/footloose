@@ -59,7 +59,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 		s.Command = m.spec.Cmd
 		s.Spec = m.spec
 		state := "Stopped"
-		if m.IsRunning() {
+		if m.IsStarted() {
 			state = "Running"
 		}
 		s.State = state
@@ -114,7 +114,7 @@ func (TableFormatter) Format(machines []*Machine) error {
 	table.SetHeader([]string{"Name", "Hostname", "Ports", "IP", "Image", "Cmd", "State"})
 	for _, m := range machines {
 		state := Stopped
-		if m.IsRunning() {
+		if m.IsStarted() {
 			state = Running
 		}
 		var ports []string

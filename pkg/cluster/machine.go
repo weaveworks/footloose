@@ -41,8 +41,9 @@ func (m *Machine) Hostname() string {
 	return m.hostname
 }
 
-// IsRunning returns if a machine is currently active and running or not.
-func (m *Machine) IsRunning() bool {
+// IsCreated returns if a machine is has been created. A created machine could
+// either be running or stopped.
+func (m *Machine) IsCreated() bool {
 	res, _ := docker.Inspect(m.name, "{{.Name}}")
 	if len(res) > 0 && len(res[0]) > 0 {
 		return true
