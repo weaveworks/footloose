@@ -157,6 +157,7 @@ Interesting things can be done with `footloose`!
 * [Customize the OS image](./examples/fedora29-htop/README.md)
 * [Ansible example](./examples/ansible/README.md)
 * [Run Apache in a footloose machine](./examples/apache/README.md)
+* [OpenShift with footloose](https://github.com/carlosedp/openshift-on-footloose)
 
 ## Running `dockerd` in Container Machines
 
