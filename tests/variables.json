@@ -5,6 +5,7 @@
     "fedora29",
     "ubuntu16.04",
     "ubuntu18.04",
-    "debian10"
+    "debian10",
+    "clearlinux"
   ]
 }
