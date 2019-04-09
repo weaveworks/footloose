@@ -39,13 +39,13 @@ const (
 )
 
 type status struct {
-	Name     string          `json:"name"`
-	State    string          `json:"state"`
-	Spec     *config.Machine `json:"spec,omitempty"`
-	Ports    []port          `json:"ports"`
-	Hostname string          `json:"hostname"`
-	Image    string          `json:"image"`
-	Command  string          `json:"cmd"`
+	Container string          `json:"container"`
+	State     string          `json:"state"`
+	Spec      *config.Machine `json:"spec,omitempty"`
+	Ports     []port          `json:"ports"`
+	Hostname  string          `json:"hostname"`
+	Image     string          `json:"image"`
+	Command   string          `json:"cmd"`
 }
 
 // Format will output to stdout in JSON format.
@@ -54,7 +54,7 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	for _, m := range machines {
 		s := status{}
 		s.Hostname = m.Hostname()
-		s.Name = strings.TrimPrefix(m.ContainerName(), "/")
+		s.Container = m.ContainerName()
 		s.Image = m.spec.Image
 		s.Command = m.spec.Cmd
 		s.Spec = m.spec
@@ -99,13 +99,13 @@ func (js JSONFormatter) FormatSingle(m Machine) error {
 }
 
 type tableMachine struct {
-	Name     string
-	Hostname string
-	Ports    string
-	IP       string
-	Image    string
-	Cmd      string
-	State    string
+	Container string
+	Hostname  string
+	Ports     string
+	IP        string
+	Image     string
+	Cmd       string
+	State     string
 }
 
 // Format will output to stdout in table format.
@@ -130,15 +130,15 @@ func (TableFormatter) Format(machines []*Machine) error {
 		}
 		ps := strings.Join(ports, ",")
 		tm := tableMachine{
-			Name:     strings.TrimPrefix(m.ContainerName(), "/"),
-			Hostname: m.Hostname(),
-			Ports:    ps,
-			IP:       m.ip,
-			Image:    m.spec.Image,
-			Cmd:      m.spec.Cmd,
-			State:    state,
+			Container: m.ContainerName(),
+			Hostname:  m.Hostname(),
+			Ports:     ps,
+			IP:        m.ip,
+			Image:     m.spec.Image,
+			Cmd:       m.spec.Cmd,
+			State:     state,
 		}
-		table.Append([]string{tm.Name, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State})
+		table.Append([]string{tm.Container, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State})
 	}
 	table.SetBorder(false)
 	table.SetCenterSeparator("")
