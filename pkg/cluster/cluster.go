@@ -132,8 +132,8 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 	// Start the container.
 	log.Infof("Creating machine: %s ...", name)
 
-	if machine.IsRunning() {
-		log.Infof("Machine with name %s is already running...", name)
+	if machine.IsCreated() {
+		log.Infof("Machine with name %s is already created...", name)
 		return nil
 	}
 
@@ -227,8 +227,8 @@ func (c *Cluster) Create() error {
 
 func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
-	if !machine.IsRunning() {
-		log.Infof("Machine with name %s isn't running...", name)
+	if !machine.IsCreated() {
+		log.Infof("Machine with name %s hasn't been created...", name)
 		return nil
 	}
 
@@ -293,7 +293,7 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 	// cluster related data.
 	machines = c.gatherMachinesByCluster()
 	for _, m := range machines {
-		if m.IsRunning() {
+		if m.IsCreated() {
 			inspect, err := c.gatherMachineDetails(m.name)
 			if err != nil {
 				return machines, err
@@ -357,8 +357,8 @@ func (c *Cluster) gatherMachinesByCluster() (machines []*Machine) {
 
 func (c *Cluster) startMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
-	if !machine.IsRunning() {
-		log.Infof("Machine with name %s isn't running...", name)
+	if !machine.IsCreated() {
+		log.Infof("Machine with name %s hasn't been created...", name)
 		return nil
 	}
 	if machine.IsStarted() {
@@ -384,8 +384,8 @@ func (c *Cluster) Start() error {
 func (c *Cluster) stopMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 
-	if !machine.IsRunning() {
-		log.Infof("Machine with name %s isn't running...", name)
+	if !machine.IsCreated() {
+		log.Infof("Machine with name %s hasn't been created...", name)
 		return nil
 	}
 	if !machine.IsStarted() {
