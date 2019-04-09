@@ -3,7 +3,7 @@
 {
   "machines": [
     {
-      "name": "test-show-ubuntu18.04-node0",
+      "container": "test-show-ubuntu18.04-node0",
       "state": "Stopped",
       "spec": {
         "name": "node%d",
