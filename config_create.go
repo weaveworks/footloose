@@ -57,7 +57,10 @@ func configExists(path string) bool {
 
 func configCreate(cmd *cobra.Command, args []string) error {
 	opts := &configCreateOptions
-	cluster := cluster.New(defaultConfig)
+	cluster, err := cluster.New(defaultConfig)
+	if err != nil {
+		return err
+	}
 	if configExists(opts.file) && !opts.override {
 		return fmt.Errorf("configuration file at %s already exists", opts.file)
 	}

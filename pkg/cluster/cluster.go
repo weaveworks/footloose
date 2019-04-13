@@ -32,18 +32,24 @@ type Cluster struct {
 
 // New creates a new cluster. It takes as input the description of the cluster
 // and its machines.
-func New(conf config.Config) *Cluster {
+func New(conf config.Config) (*Cluster, error) {
+	err := conf.Validate()
+	if err != nil {
+		return nil, err
+	}
 	return &Cluster{
 		spec: conf,
-	}
+	}, nil
 }
 
 // NewFromYAML creates a new Cluster from a YAML serialization of its
 // configuration available in the provided string.
 func NewFromYAML(data []byte) (*Cluster, error) {
 	spec := config.Config{}
-	err := yaml.Unmarshal(data, &spec)
-	return New(spec), err
+	if err := yaml.Unmarshal(data, &spec); err != nil {
+		return nil, err
+	}
+	return New(spec)
 }
 
 // NewFromFile creates a new Cluster from a YAML serialization of its

@@ -1,5 +1,11 @@
 package config
 
+import (
+	"fmt"
+
+	log "github.com/sirupsen/logrus"
+)
+
 // MachineReplicas are a number of machine following the same specification.
 type MachineReplicas struct {
 	Spec  Machine `json:"spec"`
@@ -22,4 +28,30 @@ type Config struct {
 	Cluster Cluster `json:"cluster"`
 	// Machines describe the machines we want created for this cluster.
 	Machines []MachineReplicas `json:"machines"`
+}
+
+// validate checks basic rules for MachineReplicas's fields
+func (conf MachineReplicas) validate() error {
+	return conf.Spec.validate()
+}
+
+// validate checks basic rules for Cluster's fields
+func (conf Cluster) validate() error {
+	return fmt.Errorf("not yet implemented")
+}
+
+// Validate checks basic rules for Config's fields
+func (conf Config) Validate() error {
+	valid := true
+	for _, machine := range conf.Machines {
+		err := machine.validate()
+		if err != nil {
+			valid = false
+			log.Fatalf(err.Error())
+		}
+	}
+	if valid == false {
+		return fmt.Errorf("Configuration file non valid")
+	}
+	return nil
 }
