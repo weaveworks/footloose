@@ -303,7 +303,7 @@ func (c *Cluster) Inspect(node string) error {
 		return err
 	}
 	for _, m := range machines {
-		if strings.TrimPrefix(m.name, "/") == node {
+		if m.hostname == node {
 			formatter, err := getFormatter("json")
 			if err != nil {
 				return err
