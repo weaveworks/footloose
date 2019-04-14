@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"regexp"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -61,14 +61,10 @@ type Machine struct {
 
 // validate checks basic rules for Machine's fields
 func (conf Machine) validate() error {
-	errMessage := "Machine configuration not valid"
-	matching, err := regexp.MatchString(".*%d", conf.Name)
-	if err != nil {
-		log.Warnf(err.Error())
-		return fmt.Errorf(errMessage)
-	} else if matching == false {
-		log.Warnf("Machine conf validation: machine name %v is not valid, it should finish with %%d", conf.Name)
-		return fmt.Errorf(errMessage)
+	validName := strings.Contains(conf.Name, "%d")
+	if validName != true {
+		log.Warnf("Machine conf validation: machine name %v is not valid, it should contains %%d", conf.Name)
+		return fmt.Errorf("Machine configuration not valid")
 	}
 	return nil
 }
