@@ -1,5 +1,12 @@
 package config
 
+import (
+	"fmt"
+	"strings"
+
+	log "github.com/sirupsen/logrus"
+)
+
 // Volume is a volume that can be attached to a Machine.
 type Volume struct {
 	// Type is the volume type. One of "bind" or "volume".
@@ -50,4 +57,14 @@ type Machine struct {
 	PortMappings []PortMapping `json:"portMappings,omitempty"`
 	// Cmd is a cmd which will be run in the container.
 	Cmd string `json:"cmd,omitempty"`
+}
+
+// validate checks basic rules for Machine's fields
+func (conf Machine) validate() error {
+	validName := strings.Contains(conf.Name, "%d")
+	if validName != true {
+		log.Warnf("Machine conf validation: machine name %v is not valid, it should contains %%d", conf.Name)
+		return fmt.Errorf("Machine configuration not valid")
+	}
+	return nil
 }

@@ -1,0 +1,10 @@
+cluster:
+  name: test-create-invalid-fedora29
+  privateKey: test-create-invalid-fedora29-key
+machines:
+- count: 3
+  spec:
+    image: quay.io/footloose/centos7:latest
+    name: node
+    portMappings:
+    - containerPort: 22
