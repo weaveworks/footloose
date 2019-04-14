@@ -26,5 +26,5 @@ func stop(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return cluster.Stop()
+	return cluster.Stop(args)
 }

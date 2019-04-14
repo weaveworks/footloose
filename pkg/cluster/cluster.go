@@ -80,7 +80,6 @@ func (c *Cluster) machine(spec *config.Machine, i int) *Machine {
 		name:     c.containerName(spec, i),
 		hostname: f(spec.Name, i),
 	}
-
 }
 
 func (c *Cluster) forEachMachine(do func(*Machine, int) error) error {
@@ -90,6 +89,33 @@ func (c *Cluster) forEachMachine(do func(*Machine, int) error) error {
 			if err := do(machine, i); err != nil {
 				return err
 			}
+		}
+	}
+	return nil
+}
+
+func (c *Cluster) forSpecificMachines(do func(*Machine, int) error, machineNames []string) error {
+	// machineToStart map is used to track machines to make actions and non existing machines
+	machineToStart := make(map[string]bool)
+	for _, machine := range machineNames {
+		machineToStart[machine] = false
+	}
+	for _, template := range c.spec.Machines {
+		for i := 0; i < template.Count; i++ {
+			machine := c.machine(&template.Spec, i)
+			_, ok := machineToStart[machine.name]
+			if ok {
+				if err := do(machine, i); err != nil {
+					return err
+				}
+				machineToStart[machine.name] = true
+			}
+		}
+	}
+	// log warning for non existing machines
+	for key, value := range machineToStart {
+		if value == false {
+			log.Warnf("machine %v does not exist", key)
 		}
 	}
 	return nil
@@ -377,8 +403,16 @@ func (c *Cluster) startMachine(machine *Machine, i int) error {
 }
 
 // Start starts the machines in cluster.
-func (c *Cluster) Start() error {
-	return c.forEachMachine(c.startMachine)
+func (c *Cluster) Start(machineNames []string) error {
+	if len(machineNames) < 1 {
+		return c.forEachMachine(c.startMachine)
+	}
+	return c.forSpecificMachines(c.startMachine, machineNames)
+}
+
+// StartMachines starts specific machines(s) in cluster
+func (c *Cluster) StartMachines(machineNames []string) error {
+	return c.forSpecificMachines(c.startMachine, machineNames)
 }
 
 func (c *Cluster) stopMachine(machine *Machine, i int) error {
@@ -404,8 +438,11 @@ func (c *Cluster) stopMachine(machine *Machine, i int) error {
 }
 
 // Stop stops the machines in cluster.
-func (c *Cluster) Stop() error {
-	return c.forEachMachine(c.stopMachine)
+func (c *Cluster) Stop(machineNames []string) error {
+	if len(machineNames) < 1 {
+		return c.forEachMachine(c.stopMachine)
+	}
+	return c.forSpecificMachines(c.stopMachine, machineNames)
 }
 
 // io.Writer filter that writes that it receives to writer. Keeps track if it
