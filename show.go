@@ -6,10 +6,12 @@ import (
 )
 
 var showCmd = &cobra.Command{
-	Use:   "show",
-	Short: "show all running machines",
-	RunE:  show,
-	Args:  cobra.MaximumNArgs(1),
+	Use:   "show [HOSTNAME]",
+	Short: "Show all running machines or a single machine with a given hostname.",
+	Long: `Provides information about machines created by footloose in JSON or Table format.
+Optionally, provide show with a hostname to look for a specific machine. Exp: 'show node0'.`,
+	RunE: show,
+	Args: cobra.MaximumNArgs(1),
 }
 
 var showOptions struct {
@@ -19,13 +21,11 @@ var showOptions struct {
 
 func init() {
 	showCmd.Flags().StringVarP(&showOptions.config, "config", "c", Footloose, "Cluster configuration file")
-	showCmd.Flags().StringVarP(&showOptions.output, "output", "o", "table", "Output options")
+	showCmd.Flags().StringVarP(&showOptions.output, "output", "o", "table", "Output formatting options: {json,table}.")
 	footloose.AddCommand(showCmd)
 }
 
 // show will show all machines in a given cluster.
-// if --all option is provided it will show every machine created by
-// footloose no matter what cluster they are in.
 func show(cmd *cobra.Command, args []string) error {
 	c, err := cluster.NewFromFile(showOptions.config)
 	if err != nil {
