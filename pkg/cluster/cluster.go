@@ -303,13 +303,13 @@ func (c *Cluster) Show(output string) error {
 }
 
 // Inspect retrieves information about a single machine.
-func (c *Cluster) Inspect(node string) error {
+func (c *Cluster) Inspect(hostname string) error {
 	machines, err := c.gatherMachines()
 	if err != nil {
 		return err
 	}
 	for _, m := range machines {
-		if m.hostname == node {
+		if m.hostname == hostname {
 			formatter, err := getFormatter("json")
 			if err != nil {
 				return err
@@ -317,7 +317,7 @@ func (c *Cluster) Inspect(node string) error {
 			return formatter.FormatSingle(*m)
 		}
 	}
-	return fmt.Errorf("machine with name %s not found", node)
+	return fmt.Errorf("machine with hostname %s not found", hostname)
 }
 
 func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
