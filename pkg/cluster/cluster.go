@@ -290,34 +290,37 @@ func (c *Cluster) Delete() error {
 }
 
 // Show will generate information about running or stopped machines.
-func (c *Cluster) Show(output string) error {
+func (c *Cluster) Show(hostnames []string) ([]*Machine, error) {
 	machines, err := c.gatherMachines()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	formatter, err := getFormatter(output)
-	if err != nil {
-		return err
+	if len(hostnames) > 0 {
+		return c.machineFilering(machines, hostnames), nil
 	}
-	return formatter.Format(machines)
+	return machines, nil
 }
 
-// Inspect retrieves information about a single machine.
-func (c *Cluster) Inspect(hostname string) error {
-	machines, err := c.gatherMachines()
-	if err != nil {
-		return err
+func (c *Cluster) machineFilering(machines []*Machine, hostnames []string) []*Machine {
+	// machinesToKeep map is used to know not found machines
+	machinesToKeep := make(map[string]bool)
+	for _, machine := range hostnames {
+		machinesToKeep[machine] = false
 	}
+	// newMcahines is the filtered list
+	newMachines := make([]*Machine, 0)
 	for _, m := range machines {
-		if m.hostname == hostname {
-			formatter, err := getFormatter("json")
-			if err != nil {
-				return err
-			}
-			return formatter.FormatSingle(*m)
+		if _, ok := machinesToKeep[m.hostname]; ok {
+			machinesToKeep[m.hostname] = true
+			newMachines = append(newMachines, m)
 		}
 	}
-	return fmt.Errorf("machine with hostname %s not found", hostname)
+	for hostname, found := range machinesToKeep {
+		if found != true {
+			log.Warnf("machine with hostname %s not found", hostname)
+		}
+	}
+	return newMachines
 }
 
 func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
