@@ -32,7 +32,7 @@ func show(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	formatter, err := cluster.GetFormatter(showOptions.output)
-	machines, err := c.Show(args)
+	machines, err := c.Inspect(args)
 	if err != nil {
 		return err
 	}

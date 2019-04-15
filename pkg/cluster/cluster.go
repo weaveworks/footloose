@@ -289,8 +289,8 @@ func (c *Cluster) Delete() error {
 	return c.forEachMachine(c.deleteMachine)
 }
 
-// Show will generate information about running or stopped machines.
-func (c *Cluster) Show(hostnames []string) ([]*Machine, error) {
+// Inspect will generate information about running or stopped machines.
+func (c *Cluster) Inspect(hostnames []string) ([]*Machine, error) {
 	machines, err := c.gatherMachines()
 	if err != nil {
 		return nil, err
