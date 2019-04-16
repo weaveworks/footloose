@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN sed -i 's/# deb/deb/g' /etc/apt/sources.list
 
 RUN apt-get update \
-    && apt-get install -y systemd dbus openssh-client openssh-server net-tools iproute2 iputils-ping curl wget vim-tiny \
+    && apt-get install -y systemd dbus openssh-client openssh-server net-tools iproute2 iputils-ping curl wget vim-tiny sudo \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
