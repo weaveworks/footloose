@@ -31,8 +31,10 @@ func show(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(args) > 0 {
-		return c.Inspect(args[0])
+	formatter, err := cluster.GetFormatter(showOptions.output)
+	machines, err := c.Inspect(args)
+	if err != nil {
+		return err
 	}
-	return c.Show(showOptions.output)
+	return formatter.Format(machines)
 }

@@ -15,7 +15,7 @@ import (
 // in a given format.
 type Formatter interface {
 	Format([]*Machine) error
-	FormatSingle(Machine) error
+	FormatSingle(*Machine) error
 }
 
 // JSONFormatter formats a slice of machines into a JSON and
@@ -94,8 +94,8 @@ func (JSONFormatter) Format(machines []*Machine) error {
 }
 
 // FormatSingle is a json formatter for a single machine.
-func (js JSONFormatter) FormatSingle(m Machine) error {
-	return js.Format([]*Machine{&m})
+func (js JSONFormatter) FormatSingle(m *Machine) error {
+	return js.Format([]*Machine{m})
 }
 
 type tableMachine struct {
@@ -152,12 +152,12 @@ func (TableFormatter) Format(machines []*Machine) error {
 }
 
 // FormatSingle is a table formatter for a single machine.
-func (TableFormatter) FormatSingle(machine Machine) error {
+func (TableFormatter) FormatSingle(machine *Machine) error {
 	jsonFormatter := JSONFormatter{}
 	return jsonFormatter.FormatSingle(machine)
 }
 
-func getFormatter(output string) (Formatter, error) {
+func GetFormatter(output string) (Formatter, error) {
 	var formatter Formatter
 	switch output {
 	case "json":
