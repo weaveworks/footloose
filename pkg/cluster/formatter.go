@@ -3,12 +3,12 @@ package cluster
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/weaveworks/footloose/pkg/config"
-
-	"github.com/olekukonko/tablewriter"
 )
 
 // Formatter formats a slice of machines and outputs the result
@@ -108,10 +108,15 @@ type tableMachine struct {
 	State     string
 }
 
+func writeColumns(w io.Writer, cols []string) {
+	fmt.Fprintln(w, strings.Join(cols, "\t"))
+}
+
 // Format will output to stdout in table format.
 func (TableFormatter) Format(machines []*Machine) error {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Name", "Hostname", "Ports", "IP", "Image", "Cmd", "State"})
+	const padding = 3
+	table := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
+	writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE"})
 	for _, m := range machines {
 		state := Stopped
 		if m.IsStarted() {
@@ -138,16 +143,9 @@ func (TableFormatter) Format(machines []*Machine) error {
 			Cmd:       m.spec.Cmd,
 			State:     state,
 		}
-		table.Append([]string{tm.Container, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State})
+		writeColumns(table, []string{tm.Container, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State})
 	}
-	table.SetBorder(false)
-	table.SetCenterSeparator("")
-	table.SetColumnSeparator("")
-	table.SetRowSeparator("")
-	table.SetHeaderLine(false)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.Render()
+	table.Flush()
 	return nil
 }
 
