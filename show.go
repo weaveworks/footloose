@@ -6,8 +6,9 @@ import (
 )
 
 var showCmd = &cobra.Command{
-	Use:   "show [HOSTNAME]",
-	Short: "Show all running machines or a single machine with a given hostname.",
+	Use:     "show [HOSTNAME]",
+	Aliases: []string{"status"},
+	Short:   "Show all running machines or a single machine with a given hostname.",
 	Long: `Provides information about machines created by footloose in JSON or Table format.
 Optionally, provide show with a hostname to look for a specific machine. Exp: 'show node0'.`,
 	RunE: show,
