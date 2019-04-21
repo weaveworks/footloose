@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/weaveworks/footloose/pkg/config"
 
@@ -39,11 +40,15 @@ func getConfig(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("Failed to get config detail")
 		}
 	}
-	res, err := json.MarshalIndent(detail, "", "  ")
-	if err != nil {
-		log.Println(err)
-		return fmt.Errorf("Cannot convert result to json")
+	if reflect.ValueOf(detail).Kind() != reflect.String {
+		res, err := json.MarshalIndent(detail, "", "  ")
+		if err != nil {
+			log.Println(err)
+			return fmt.Errorf("Cannot convert result to json")
+		}
+		fmt.Printf("%s", res)
+	} else {
+		fmt.Printf("%s", detail)
 	}
-	fmt.Printf("%s", res)
 	return nil
 }

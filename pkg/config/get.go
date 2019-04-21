@@ -11,12 +11,11 @@ func pathSplit(r rune) bool {
 	return r == '.' || r == '[' || r == ']' || r == '"'
 }
 
+// GetValueFromConfig returns specific value from object given a string path
 func GetValueFromConfig(stringPath string, object interface{}) (interface{}, error) {
 	keyPath := strings.FieldsFunc(stringPath, pathSplit)
-	// log.Println(stringPath)
 	v := reflect.ValueOf(object)
 	for _, key := range keyPath {
-		// log.Println(key)
 		keyUpper := strings.Title(key)
 		for v.Kind() == reflect.Ptr {
 			v = v.Elem()
