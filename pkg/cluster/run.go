@@ -3,37 +3,16 @@ package cluster
 import (
 	"bytes"
 	"fmt"
-
-	log "github.com/sirupsen/logrus"
-	"sigs.k8s.io/kind/pkg/docker"
-	"sigs.k8s.io/kind/pkg/exec"
 )
 
 // run runs a command. It will output the combined stdout/error on failure.
 func run(name string, args ...string) error {
-	cmd := exec.Command(name, args...)
-	output, err := exec.CombinedOutputLines(cmd)
-	if err != nil {
-		// log error output if there was any
-		for _, line := range output {
-			log.Error(line)
-		}
-	}
-	return err
+	return GetCommanderInstance().RunCommand(name, args...)
 }
 
 // Run a command in a container. It will output the combined stdout/error on failure.
 func containerRun(nameOrID string, name string, args ...string) error {
-	exe := docker.ContainerCmder(nameOrID)
-	cmd := exe.Command(name, args...)
-	output, err := exec.CombinedOutputLines(cmd)
-	if err != nil {
-		// log error output if there was any
-		for _, line := range output {
-			log.WithField("machine", nameOrID).Error(line)
-		}
-	}
-	return err
+	return GetCommanderInstance().RunCommandContainer(nameOrID, name, args...)
 }
 
 func containerRunShell(nameOrID string, script string) error {

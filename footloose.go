@@ -15,6 +15,8 @@ var footloose = &cobra.Command{
 	SilenceErrors: true,
 }
 
+var verbosity bool
+
 func main() {
 	if err := footloose.Execute(); err != nil {
 		log.Fatal(err)

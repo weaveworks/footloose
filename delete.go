@@ -17,14 +17,16 @@ var deleteOptions struct {
 }
 
 func init() {
+	deleteCmd.Flags().BoolVarP(&verbosity, "verbose", "v", false, "Verbosity commandline calls")
 	deleteCmd.Flags().StringVarP(&deleteOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	footloose.AddCommand(deleteCmd)
 }
 
 func delete(cmd *cobra.Command, args []string) error {
-	cluster, err := cluster.NewFromFile(deleteOptions.config)
+	cluster.GetCommanderInstance().SetVerbosity(verbosity)
+	c, err := cluster.NewFromFile(deleteOptions.config)
 	if err != nil {
 		return err
 	}
-	return cluster.Delete()
+	return c.Delete()
 }
