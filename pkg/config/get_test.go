@@ -7,6 +7,20 @@ import (
 )
 
 func TestGetValueFromConfig(t *testing.T) {
+	config := Config{
+		Cluster: Cluster{Name: "clustername", PrivateKey: "privatekey"},
+		Machines: []MachineReplicas{
+			MachineReplicas{
+				Count: 3,
+				Spec: Machine{
+					Image:      "myImage",
+					Name:       "myName",
+					Privileged: true,
+				},
+			},
+		},
+	}
+
 	tests := []struct {
 		name           string
 		stringPath     string
@@ -25,19 +39,7 @@ func TestGetValueFromConfig(t *testing.T) {
 		{
 			"array path select global",
 			"machines[0].spec",
-			Config{
-				Cluster: Cluster{Name: "clustername", PrivateKey: "privatekey"},
-				Machines: []MachineReplicas{
-					MachineReplicas{
-						Count: 3,
-						Spec: Machine{
-							Image:      "myImage",
-							Name:       "myName",
-							Privileged: true,
-						},
-					},
-				},
-			},
+			config,
 			Machine{
 				Image:      "myImage",
 				Name:       "myName",
@@ -47,19 +49,7 @@ func TestGetValueFromConfig(t *testing.T) {
 		{
 			"array path select bool",
 			"machines[0].spec.Privileged",
-			Config{
-				Cluster: Cluster{Name: "clustername", PrivateKey: "privatekey"},
-				Machines: []MachineReplicas{
-					MachineReplicas{
-						Count: 3,
-						Spec: Machine{
-							Image:      "myImage",
-							Name:       "myName",
-							Privileged: true,
-						},
-					},
-				},
-			},
+			config,
 			true,
 		},
 	}
