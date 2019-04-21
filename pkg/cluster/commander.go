@@ -123,7 +123,7 @@ func (v *commanderSingleton) DockerRm(container string) error {
 	if v.isVerbose {
 		log.Println("Rm docker command: docker rm", container)
 	}
-	return run("docker", "stop", container)
+	return run("docker", "rm", container)
 }
 
 func (v *commanderSingleton) DockerStart(container string) error {
