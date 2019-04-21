@@ -2,9 +2,27 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
+
+func NewConfigFromYAML(data []byte) (*Config, error) {
+	spec := Config{}
+	if err := yaml.Unmarshal(data, &spec); err != nil {
+		return nil, err
+	}
+	return &spec, nil
+}
+
+func NewConfigFromFile(path string) (*Config, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return NewConfigFromYAML(data)
+}
 
 // MachineReplicas are a number of machine following the same specification.
 type MachineReplicas struct {
