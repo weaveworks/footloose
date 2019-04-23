@@ -21,6 +21,7 @@ var showOptions struct {
 }
 
 func init() {
+	showCmd.Flags().BoolVarP(&verbosity, "verbose", "v", false, "Verbosity commandline calls")
 	showCmd.Flags().StringVarP(&showOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	showCmd.Flags().StringVarP(&showOptions.output, "output", "o", "table", "Output formatting options: {json,table}.")
 	footloose.AddCommand(showCmd)
@@ -28,6 +29,7 @@ func init() {
 
 // show will show all machines in a given cluster.
 func show(cmd *cobra.Command, args []string) error {
+	cluster.GetCommanderInstance().SetVerbosity(verbosity)
 	c, err := cluster.NewFromFile(showOptions.config)
 	if err != nil {
 		return err

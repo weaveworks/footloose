@@ -17,14 +17,16 @@ var createOptions struct {
 }
 
 func init() {
+	createCmd.Flags().BoolVarP(&verbosity, "verbose", "v", false, "Verbosity commandline calls")
 	createCmd.Flags().StringVarP(&createOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	footloose.AddCommand(createCmd)
 }
 
 func create(cmd *cobra.Command, args []string) error {
-	cluster, err := cluster.NewFromFile(createOptions.config)
+	cluster.GetCommanderInstance().SetVerbosity(verbosity)
+	c, err := cluster.NewFromFile(createOptions.config)
 	if err != nil {
 		return err
 	}
-	return cluster.Create()
+	return c.Create()
 }

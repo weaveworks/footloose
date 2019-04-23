@@ -17,14 +17,16 @@ var startOptions struct {
 }
 
 func init() {
+	startCmd.Flags().BoolVarP(&verbosity, "verbose", "v", false, "Verbosity commandline calls")
 	startCmd.Flags().StringVarP(&startOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	footloose.AddCommand(startCmd)
 }
 
 func start(cmd *cobra.Command, args []string) error {
-	cluster, err := cluster.NewFromFile(startOptions.config)
+	cluster.GetCommanderInstance().SetVerbosity(verbosity)
+	c, err := cluster.NewFromFile(startOptions.config)
 	if err != nil {
 		return err
 	}
-	return cluster.Start(args)
+	return c.Start(args)
 }

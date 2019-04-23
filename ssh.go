@@ -23,12 +23,14 @@ var sshOptions struct {
 }
 
 func init() {
+	sshCmd.Flags().BoolVarP(&verbosity, "verbose", "v", false, "Verbosity commandline calls")
 	sshCmd.Flags().StringVarP(&sshOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	footloose.AddCommand(sshCmd)
 }
 
 func ssh(cmd *cobra.Command, args []string) error {
-	cluster, err := cluster.NewFromFile(sshOptions.config)
+	cluster.GetCommanderInstance().SetVerbosity(verbosity)
+	c, err := cluster.NewFromFile(sshOptions.config)
 	if err != nil {
 		return err
 	}
@@ -49,7 +51,7 @@ func ssh(cmd *cobra.Command, args []string) error {
 		}
 		username = user.Username
 	}
-	return cluster.SSH(node, username, args[1:]...)
+	return c.SSH(node, username, args[1:]...)
 }
 
 func validateArgs(cmd *cobra.Command, args []string) error {

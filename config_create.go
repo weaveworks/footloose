@@ -21,6 +21,8 @@ var configCreateOptions struct {
 }
 
 func init() {
+	configCreateCmd.Flags().BoolVarP(&verbosity, "verbose", "v", false, "Verbosity commandline calls")
+
 	configCreateCmd.Flags().StringVarP(&configCreateOptions.file, "config", "c", Footloose, "Cluster configuration file")
 	configCreateCmd.Flags().BoolVar(&configCreateOptions.override, "override", false, "Override configuration file if it exists")
 
@@ -56,6 +58,7 @@ func configExists(path string) bool {
 }
 
 func configCreate(cmd *cobra.Command, args []string) error {
+	cluster.GetCommanderInstance().SetVerbosity(verbosity)
 	opts := &configCreateOptions
 	cluster, err := cluster.New(defaultConfig)
 	if err != nil {

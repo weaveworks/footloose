@@ -16,7 +16,6 @@ import (
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
-	"sigs.k8s.io/kind/pkg/docker"
 	"sigs.k8s.io/kind/pkg/exec"
 )
 
@@ -174,7 +173,7 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 		cmd = machine.spec.Cmd
 	}
 
-	_, err := docker.Run(machine.spec.Image,
+	_, err := GetCommanderInstance().DockerRun(machine.spec.Image,
 		runArgs,
 		[]string{cmd},
 	)
@@ -250,7 +249,7 @@ func (c *Cluster) Create() error {
 		return err
 	}
 	for _, template := range c.spec.Machines {
-		if _, err := docker.PullIfNotPresent(template.Spec.Image, 2); err != nil {
+		if _, err := GetCommanderInstance().DockerPullIfNotPresent(template.Spec.Image, 2); err != nil {
 			return err
 		}
 	}
@@ -266,22 +265,14 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 
 	if machine.IsStarted() {
 		log.Infof("Machine %s is started, stopping and deleting machine...", name)
-		err := docker.Kill("KILL", name)
+		err := GetCommanderInstance().DockerKill(name, "KILL")
 		if err != nil {
 			return err
 		}
-		cmd := exec.Command(
-			"docker", "rm",
-			name,
-		)
-		return cmd.Run()
+		return GetCommanderInstance().DockerRm(name)
 	}
 	log.Infof("Deleting machine: %s ...", name)
-	cmd := exec.Command(
-		"docker", "rm",
-		name,
-	)
-	return cmd.Run()
+	return GetCommanderInstance().DockerRm(name)
 }
 
 // Delete deletes the cluster.
@@ -367,7 +358,7 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 }
 
 func (c *Cluster) gatherMachineDetails(name string) (container types.ContainerJSON, err error) {
-	res, err := docker.Inspect(name, "{{json .}}")
+	res, err := GetCommanderInstance().DockerInspect(name, "{{json .}}")
 	if err != nil {
 		return container, err
 	}
@@ -404,11 +395,7 @@ func (c *Cluster) startMachine(machine *Machine, i int) error {
 
 	// Run command while sigs.k8s.io/kind/pkg/container/docker doesn't
 	// have a start command
-	cmd := exec.Command(
-		"docker", "start",
-		name,
-	)
-	return cmd.Run()
+	return GetCommanderInstance().DockerStart(name)
 }
 
 // Start starts the machines in cluster.
@@ -439,11 +426,7 @@ func (c *Cluster) stopMachine(machine *Machine, i int) error {
 
 	// Run command while sigs.k8s.io/kind/pkg/container/docker doesn't
 	// have a start command
-	cmd := exec.Command(
-		"docker", "stop",
-		name,
-	)
-	return cmd.Run()
+	return GetCommanderInstance().DockerStop(name)
 }
 
 // Stop stops the machines in cluster.

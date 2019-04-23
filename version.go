@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/footloose/pkg/cluster"
 	release "github.com/weaveworks/footloose/pkg/version"
 
 	"github.com/spf13/cobra"
@@ -16,12 +17,14 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
+	versionCmd.Flags().BoolVarP(&verbosity, "verbosity", "v", false, "Verbosity commandline calls")
 	footloose.AddCommand(versionCmd)
 }
 
 var version = "git"
 
 func showVersion(cmd *cobra.Command, args []string) {
+	cluster.GetCommanderInstance().SetVerbosity(verbosity)
 	fmt.Println("version:", version)
 	release, err := release.FindLastRelease()
 	if err != nil {

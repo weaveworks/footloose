@@ -17,14 +17,16 @@ var stopOptions struct {
 }
 
 func init() {
+	stopCmd.Flags().BoolVarP(&verbosity, "verbose", "v", false, "Verbosity commandline calls")
 	stopCmd.Flags().StringVarP(&stopOptions.config, "config", "c", Footloose, "Cluster configuration file")
 	footloose.AddCommand(stopCmd)
 }
 
 func stop(cmd *cobra.Command, args []string) error {
-	cluster, err := cluster.NewFromFile(stopOptions.config)
+	cluster.GetCommanderInstance().SetVerbosity(verbosity)
+	c, err := cluster.NewFromFile(stopOptions.config)
 	if err != nil {
 		return err
 	}
-	return cluster.Stop(args)
+	return c.Stop(args)
 }
