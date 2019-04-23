@@ -28,6 +28,6 @@ func showVersion(cmd *cobra.Command, args []string) {
 		fmt.Println("Failed to check for new versions")
 	}
 	if strings.Compare(version, *release.TagName) != 0 {
-		fmt.Printf("New version %v is available. More informations on: %v\n", *release.TagName, *release.HTMLURL)
+		fmt.Printf("New version %v is available. More information at: %v\n", *release.TagName, *release.HTMLURL)
 	}
 }
