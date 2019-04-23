@@ -19,6 +19,6 @@ require (
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/stretchr/testify v1.2.2
 	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6 // indirect
-	gopkg.in/yaml.v2 v2.2.2 // indirect
+	gopkg.in/yaml.v2 v2.2.2
 	sigs.k8s.io/kind v0.0.0-20190204012257-d1773a79317d
 )
