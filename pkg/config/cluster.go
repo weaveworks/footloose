@@ -24,28 +24,37 @@ func NewConfigFromFile(path string) (*Config, error) {
 	return NewConfigFromYAML(data)
 }
 
+// Save writes the Config to a file.
+func (c *Config) Save(path string) error {
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, data, 0666)
+}
+
 // MachineReplicas are a number of machine following the same specification.
 type MachineReplicas struct {
-	Spec  Machine `json:"spec"`
-	Count int     `json:"count"`
+	Spec  Machine `json:"spec" yaml:"spec,omitempty"`
+	Count int     `json:"count" yaml:"count,omitempty"`
 }
 
 // Cluster is a set of Machines.
 type Cluster struct {
 	// Name is the cluster name. Defaults to "cluster".
-	Name string `json:"name"`
+	Name string `json:"name" yaml:"name,omitempty"`
 
 	// PrivateKey is the path to the private SSH key used to login into the cluster
 	// machines. Can be expanded to user homedir if ~ is found. Ex. ~/.ssh/id_rsa
-	PrivateKey string `json:"privateKey"`
+	PrivateKey string `json:"privateKey" yaml:"privateKey,omitempty"`
 }
 
 // Config is the top level config object.
 type Config struct {
 	// Cluster describes cluster-wide configuration.
-	Cluster Cluster `json:"cluster"`
+	Cluster Cluster `json:"cluster" yaml:"cluster,omitempty"`
 	// Machines describe the machines we want created for this cluster.
-	Machines []MachineReplicas `json:"machines"`
+	Machines []MachineReplicas `json:"machines" yaml:"machines,omitempty"`
 }
 
 // validate checks basic rules for MachineReplicas's fields
