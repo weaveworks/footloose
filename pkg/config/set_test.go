@@ -128,6 +128,54 @@ func TestIsSetValueValid(t *testing.T) {
 			"myMachineName",
 			true,
 		},
+		{
+			"port too high invalid containerPort",
+			"machines[0].spec.portMappings[0].containerPort",
+			"65536",
+			true,
+		},
+		{
+			"port too high invalid containerPort for uppercase path",
+			"Machines[0].Spec.PortMappings[0].ContainerPort",
+			"65536",
+			true,
+		},
+		{
+			"port too high invalid hostPort",
+			"machines[0].spec.portMappings[0].hostPort",
+			"65536",
+			true,
+		},
+		{
+			"port too high invalid hostPort for uppercase path",
+			"Machines[0].Spec.PortMappings[0].HostPort",
+			"65536",
+			true,
+		},
+		{
+			"port lower than 1 invalid containerPort",
+			"machines[0].spec.portMappings[0].containerPort",
+			"0",
+			true,
+		},
+		{
+			"port lower than 1 invalid hostPort",
+			"machines[0].spec.portMappings[0].hostPort",
+			"0",
+			true,
+		},
+		{
+			"port valid containerPort",
+			"machines[0].spec.portMappings[0].containerPort",
+			"22",
+			false,
+		},
+		{
+			"port valid hostPort",
+			"machines[0].spec.portMappings[0].hostPort",
+			"22",
+			false,
+		},
 	}
 
 	for _, utest := range tests {

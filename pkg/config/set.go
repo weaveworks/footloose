@@ -8,6 +8,13 @@ import (
 	"strings"
 )
 
+const (
+	machinePattern   = "%d"
+	maxPort          = 65535
+	machineNameRegex = `^(?:m|M)achines\[[0-9]+\].(?:s|S)pec.(?:n|N)ame$`
+	portRegex        = `^(?:m|M)achines\[[0-9]+\].(?:s|S)pec.(?:p|P)ortMappings\[[0-9]+\].(?:(?:h|H)ostPort|(?:c|C)ontainerPort)$`
+)
+
 // IsSetValueValid checks if value is valid for the given path
 func IsSetValueValid(stringPath string, value string) (rerr error) {
 	defer func() {
@@ -15,12 +22,21 @@ func IsSetValueValid(stringPath string, value string) (rerr error) {
 			rerr = fmt.Errorf(fmt.Sprint(r))
 		}
 	}()
-	v := reflect.ValueOf(value)
+	v := reflect.ValueOf(ClarifyArg(value))
 	if v.Kind() == reflect.String {
-		re := regexp.MustCompile(`^(?:m|M)achines\[[0-9]+\].(?:s|S)pec.(?:n|N)ame$`)
+		// check machine name
+		re := regexp.MustCompile(machineNameRegex)
 		if re.MatchString(stringPath) == true {
-			if strings.Contains(v.Interface().(string), "%d") == false {
-				return fmt.Errorf("Machine name is not valid, it should contain %%d")
+			if strings.Contains(v.Interface().(string), machinePattern) == false {
+				return fmt.Errorf("Machine name is not valid, it should contain %v", machinePattern)
+			}
+		}
+	} else if v.Kind() == reflect.Int {
+		// check port value
+		re := regexp.MustCompile(portRegex)
+		if re.MatchString(stringPath) == true {
+			if v.Interface().(int) > maxPort || v.Interface().(int) < 1 {
+				return fmt.Errorf("Port cannot be higher than %v or lesset than 1", maxPort)
 			}
 		}
 	}
