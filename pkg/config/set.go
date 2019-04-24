@@ -10,6 +10,7 @@ import (
 
 const (
 	machinePattern   = "%d"
+	minPort          = 0
 	maxPort          = 65535
 	machineNameRegex = `^(?:m|M)achines\[[0-9]+\].(?:s|S)pec.(?:n|N)ame$`
 	portRegex        = `^(?:m|M)achines\[[0-9]+\].(?:s|S)pec.(?:p|P)ortMappings\[[0-9]+\].(?:(?:h|H)ostPort|(?:c|C)ontainerPort)$`
@@ -35,8 +36,8 @@ func IsSetValueValid(stringPath string, value string) (rerr error) {
 		// check port value
 		re := regexp.MustCompile(portRegex)
 		if re.MatchString(stringPath) == true {
-			if v.Interface().(int) > maxPort || v.Interface().(int) < 1 {
-				return fmt.Errorf("Port cannot be higher than %v or lesset than 1", maxPort)
+			if v.Interface().(int) > maxPort || v.Interface().(int) < minPort {
+				return fmt.Errorf("Port cannot be higher than %v or lesset than %v", maxPort, minPort)
 			}
 		}
 	}

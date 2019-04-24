@@ -60,11 +60,34 @@ type Machine struct {
 }
 
 // validate checks basic rules for Machine's fields
-func (conf Machine) validate() error {
+func (conf Machine) validate() (rerr error) {
+	rerr = nil
 	validName := strings.Contains(conf.Name, "%d")
 	if validName != true {
 		log.Warnf("Machine conf validation: machine name %v is not valid, it should contains %%d", conf.Name)
-		return fmt.Errorf("Machine configuration not valid")
+		rerr = fmt.Errorf("Machine configuration not valid")
+	}
+	for _, pmapping := range conf.PortMappings {
+		if err := pmapping.validate(); err != nil {
+			log.Warn(err)
+			rerr = fmt.Errorf("Machine configuration not valid")
+		}
+	}
+	return rerr
+}
+
+func (conf PortMapping) validate() error {
+	if conf.HostPort > maxPort || conf.HostPort < minPort {
+		return fmt.Errorf("Machine conf validation: hostPort %v is not valid, it cannot be hight than %v or lesser than %v",
+			conf.HostPort,
+			maxPort,
+			minPort)
+	}
+	if conf.ContainerPort > maxPort || conf.ContainerPort < minPort {
+		return fmt.Errorf("Machine conf validation: containerPort %v is not valid, it cannot be hight than %v or lesser than %v",
+			conf.ContainerPort,
+			maxPort,
+			minPort)
 	}
 	return nil
 }

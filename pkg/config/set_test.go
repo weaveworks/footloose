@@ -155,13 +155,13 @@ func TestIsSetValueValid(t *testing.T) {
 		{
 			"port lower than 1 invalid containerPort",
 			"machines[0].spec.portMappings[0].containerPort",
-			"0",
+			"-1",
 			true,
 		},
 		{
 			"port lower than 1 invalid hostPort",
 			"machines[0].spec.portMappings[0].hostPort",
-			"0",
+			"-1",
 			true,
 		},
 		{
