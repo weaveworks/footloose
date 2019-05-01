@@ -61,8 +61,8 @@ func configCreate(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if configExists(opts.file) && !opts.override {
+	if configExists(configFile(opts.file)) && !opts.override {
 		return fmt.Errorf("configuration file at %s already exists", opts.file)
 	}
-	return cluster.Save(opts.file)
+	return cluster.Save(configFile(opts.file))
 }

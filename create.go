@@ -22,7 +22,7 @@ func init() {
 }
 
 func create(cmd *cobra.Command, args []string) error {
-	cluster, err := cluster.NewFromFile(createOptions.config)
+	cluster, err := cluster.NewFromFile(configFile(createOptions.config))
 	if err != nil {
 		return err
 	}

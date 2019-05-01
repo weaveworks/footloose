@@ -28,7 +28,7 @@ func init() {
 }
 
 func ssh(cmd *cobra.Command, args []string) error {
-	cluster, err := cluster.NewFromFile(sshOptions.config)
+	cluster, err := cluster.NewFromFile(configFile(sshOptions.config))
 	if err != nil {
 		return err
 	}

@@ -22,7 +22,7 @@ func init() {
 }
 
 func delete(cmd *cobra.Command, args []string) error {
-	cluster, err := cluster.NewFromFile(deleteOptions.config)
+	cluster, err := cluster.NewFromFile(configFile(deleteOptions.config))
 	if err != nil {
 		return err
 	}

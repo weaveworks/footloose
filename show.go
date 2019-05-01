@@ -28,7 +28,7 @@ func init() {
 
 // show will show all machines in a given cluster.
 func show(cmd *cobra.Command, args []string) error {
-	c, err := cluster.NewFromFile(showOptions.config)
+	c, err := cluster.NewFromFile(configFile(showOptions.config))
 	if err != nil {
 		return err
 	}
