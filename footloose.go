@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -13,6 +14,14 @@ var footloose = &cobra.Command{
 	Short:         "footloose - Container Machines",
 	SilenceUsage:  true,
 	SilenceErrors: true,
+}
+
+func configFile(f string) string {
+	env := os.Getenv("FOOTLOOSE_CONFIG")
+	if env != "" && f == Footloose{
+		return env
+	}
+	return f
 }
 
 func main() {

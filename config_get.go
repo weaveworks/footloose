@@ -27,7 +27,7 @@ func init() {
 }
 
 func getConfig(cmd *cobra.Command, args []string) error {
-	c, err := config.NewConfigFromFile(getOptions.config)
+	c, err := config.NewConfigFromFile(configFile(getOptions.config))
 	if err != nil {
 		return err
 	}
