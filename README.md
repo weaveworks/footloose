@@ -61,8 +61,11 @@ GO111MODULE=on go get github.com/weaveworks/footloose
 ## Usage
 
 `footloose` reads a description of the *Cluster* of *Machines* to create from a
-file, by default named `footloose.yaml`. The `config` command helps with
-creating the initial config file:
+file, by default named `footloose.yaml`. An alternate name can be specified on
+the command line with the `--config` option or through the `FOOTLOOSE_CONFIG`
+environment variable.
+
+The `config` command helps with creating the initial config file:
 
 ```console
 # Create a footloose.yaml config file. Instruct we want to create 3 machines.
