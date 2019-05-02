@@ -10,6 +10,8 @@ func imageTag(v string) string {
 	return v
 }
 
+var defaultDryRun = false
+
 var defaultConfig = config.Config{
 	Cluster: config.Cluster{
 		Name:       "cluster",

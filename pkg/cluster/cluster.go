@@ -301,6 +301,21 @@ func (c *Cluster) Inspect(hostnames []string) ([]*Machine, error) {
 	return machines, nil
 }
 
+// CountCreatedMachine counts how many machines are created
+func (c *Cluster) CountCreatedMachine() (int, error) {
+	machines, err := c.gatherMachines()
+	if err != nil {
+		return 0, err
+	}
+	counter := 0
+	for _, m := range machines {
+		if m.IsCreated() {
+			counter++
+		}
+	}
+	return counter, nil
+}
+
 func (c *Cluster) machineFilering(machines []*Machine, hostnames []string) []*Machine {
 	// machinesToKeep map is used to know not found machines
 	machinesToKeep := make(map[string]bool)
@@ -341,8 +356,8 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 				}
 				p := config.PortMapping{}
 				hostPort, _ := strconv.Atoi(v[0].HostPort)
-				p.HostPort = uint16(k.Int())
-				p.ContainerPort = uint16(hostPort)
+				p.HostPort = k.Int()
+				p.ContainerPort = hostPort
 				p.Address = v[0].HostIP
 				ports = append(ports, p)
 			}
