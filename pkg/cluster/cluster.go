@@ -206,7 +206,7 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 		"--hostname", machine.Hostname(),
 		"--tmpfs", "/run",
 		"--tmpfs", "/run/lock",
-		"--tmpfs", "/tmp",
+		"--tmpfs", "/tmp:exec,mode=777",
 		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
