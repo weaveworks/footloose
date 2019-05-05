@@ -241,6 +241,11 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 		runArgs = append(runArgs, "--privileged")
 	}
 
+	if machine.spec.Network != "" {
+		runArgs = append(runArgs, "--network", machine.spec.Network)
+		runArgs = append(runArgs, "--network-alias", machine.Hostname())
+	}
+
 	return runArgs
 }
 
