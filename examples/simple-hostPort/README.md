@@ -1,6 +1,8 @@
 # Simple port mapping example
 
-First prepare your deploy setup. Notice the last two lines, which means that node0 port 22 will get mapped to host port 2222, and node1 port 22 will get mapped to host port 2223
+First prepare your deploy setup. Notice the last two lines, which means that
+node0 port 22 will get mapped to host port 2222, and node1 port 22 will get
+mapped to host port 2223:
 
 ```console
 $ cat footloose.yaml
