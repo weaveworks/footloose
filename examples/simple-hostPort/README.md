@@ -3,8 +3,7 @@
 First prepare your deploy setup. Notice the last two lines, which means that node0 port 22 will get mapped to host port 2222, and node1 port 22 will get mapped to host port 2223
 
 ```console
-$ cat footloose_config_example.yaml
-
+$ cat footloose.yaml
 cluster:
   name: cluster
   privateKey: cluster-key
@@ -18,18 +17,17 @@ machines:
       hostPort: 2222
 ```
 
-now you can deploy your cluster:
+Now you can deploy your cluster:
 
 ```console
 $ footloose create
-
 INFO[0000] Image: quay.io/footloose/centos7 present locally 
 INFO[0000] Creating machine: cluster-node0 ...          
 INFO[0001] Creating machine: cluster-node1 ...          
 
 ```
 
-you now have two container running, listening on SSH port 2222 and 2223 of the host:
+You now have two container running, listening on SSH port 2222 and 2223 of the host:
 
 
 ```console
@@ -48,7 +46,7 @@ Warning: Permanently added '[127.0.0.1]:2223' (ECDSA) to the list of known hosts
 node1
 ```
 
-when finished, clean up:
+When finished, clean up:
 
 ```console
 $ footloose delete
