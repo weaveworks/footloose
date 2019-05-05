@@ -17,7 +17,7 @@ about it is: [Vagrant](https://www.vagrantup.com/), but with containers.
 
 [![asciicast](https://asciinema.org/a/226185.svg)](https://asciinema.org/a/226185)
 
-[readme-did]: https://github.com/weaveworks/footloose#running-dockerd-in-container-machines
+[readme-did]: ./examples/docker-in-docker/README.md
 
 ## Install
 
@@ -163,47 +163,6 @@ Interesting things can be done with `footloose`!
 - [Use Ansible to provision machines](./examples/ansible/README.md)
 - [Run Docker inside `footloose` machines!](./examples/docker-in-docker/README.md)
 - [OpenShift with footloose](https://github.com/carlosedp/openshift-on-footloose)
-
-## Running `dockerd` in Container Machines
-
-To run `dockerd` inside a docker container, two things are needed:
-
-- Run the container as privileged (we could probably do better! expose
-capabilities instead!).
-- Mount `/var/lib/docker` as volume, here an anonymous volume. This is
-because of a [limitations][dind] of what you can do with the overlay systems
-docker is setup to use.
-
-```yaml
-cluster:
-  name: cluster
-  privateKey: cluster-key
-machines:
-- count: 1
-  spec:
-    image: quay.io/footloose/centos7
-    name: node%d
-    portMappings:
-    - containerPort: 22
-    privileged: true
-    volumes:
-    - type: volume
-      destination: /var/lib/docker
-```
-
-You can then install and run docker on the machine:
-
-```console
-$ footloose create
-$ footloose ssh root@node0
-# yum install -y docker iptables
-[...]
-# systemctl start docker
-# docker run busybox echo 'Hello, World!'
-Hello, World!
-```
-
-[dind]: https://jpetazzo.github.io/2015/09/03/do-not-use-docker-in-docker-for-ci/
 
 ## Under the hood
 
