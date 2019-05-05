@@ -6,8 +6,7 @@ to each container of the cluster just using the hostname.
 First prepare your deploy setup. Notice the line 'network' which specifies which user-defined network the containers should be attached to.
 
 ```console
-$ cat footloose_config_example_network.yaml
-
+$ cat footloose.yaml
 cluster:
   name: cluster
   privateKey: cluster-key
@@ -21,19 +20,17 @@ machines:
     - containerPort: 22
 ```
 
-The user-defined network has to be created manually before deploying your cluster.
+The user-defined network has to be created manually before deploying your cluster:
 
 ```console
 $ docker network create footloose-cluster
-
 c558b7218393a2e4c89b19f7904d244192664997f46eb6edfc3217e187472afc
 ```
 
-now you can deploy your cluster:
+Now you can deploy your cluster:
 
 ```console
 $ footloose create
-
 INFO[0000] Image: quay.io/footloose/centos7 present locally 
 INFO[0000] Creating machine: cluster-node0 ...          
 INFO[0001] Creating machine: cluster-node1 ...  
@@ -41,11 +38,10 @@ INFO[0002] Creating machine: cluster-node2 ...
 
 ```
 
-you now have three containers running, which can talk to each other using their hostnames.
+You now have three containers running, which can talk to each other using their hostnames:
 
 ```console
 $ footloose ssh root@node0
-
 [root@node0 ~]# ping -c 4 node1
 PING node1 (172.25.0.3) 56(84) bytes of data.
 64 bytes from cluster-node1.footloose-cluster (172.25.0.3): icmp_seq=1 ttl=64 time=0.240 ms
@@ -68,7 +64,7 @@ rtt min/avg/max/mdev = 0.109/0.145/0.184/0.032 ms
 
 ```
 
-when finished, clean up:
+When finished, clean up:
 
 ```console
 $ footloose delete
