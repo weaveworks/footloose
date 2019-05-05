@@ -160,6 +160,7 @@ Interesting things can be done with `footloose`!
 
 - [Customize the OS image](./examples/fedora29-htop/README.md)
 - [Run Apache](./examples/apache/README.md)
+- [Specify which ports on the hosts should be bound to services](examples/simple-hostPort/README.md)
 - [Use Ansible to provision machines](./examples/ansible/README.md)
 - [Run Docker inside `footloose` machines!](./examples/docker-in-docker/README.md)
 - [Isolation and DNS resolution with customer docker networks](./examples/user-defined-network/README.md)
