@@ -15,9 +15,10 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/weaveworks/footloose/pkg/config"
-	"sigs.k8s.io/kind/pkg/docker"
-	"sigs.k8s.io/kind/pkg/exec"
+	"github.com/weaveworks/footloose/pkg/docker"
+	"github.com/weaveworks/footloose/pkg/exec"
 )
 
 // Container represents a running machine.
@@ -159,7 +160,6 @@ func (c *Cluster) publicKey() ([]byte, error) {
 
 func (c *Cluster) createMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
-	runArgs := c.createMachineRunArgs(machine, name, i)
 
 	// Start the container.
 	log.Infof("Creating machine: %s ...", name)
@@ -174,11 +174,31 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 		cmd = machine.spec.Cmd
 	}
 
-	_, err := docker.Run(machine.spec.Image,
+	runArgs := c.createMachineRunArgs(machine, name, i)
+	_, err := docker.Create(machine.spec.Image,
 		runArgs,
 		[]string{cmd},
 	)
 	if err != nil {
+		return err
+	}
+
+	// We connect the first network in with the run command, connect the remaining
+	// ones.
+	// TODO(damien): Split run into create+start so we can connect all networks
+	// before the container is started.
+	if len(machine.spec.Networks) > 1 {
+		for _, network := range machine.spec.Networks[1:] {
+			log.Infof("Connecting %s to the %s network...", name, network)
+			if network == "bridge" {
+				docker.ConnectNetwork(name, network)
+			} else {
+				docker.ConnectNetworkWithAlias(name, network, machine.Hostname())
+			}
+		}
+	}
+
+	if err := docker.Start(name); err != nil {
 		return err
 	}
 
@@ -199,7 +219,7 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 
 func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []string {
 	runArgs := []string{
-		"-it", "-d",
+		"-it",
 		"--label", "works.weave.owner=footloose",
 		"--label", "works.weave.cluster=" + c.spec.Cluster.Name,
 		"--name", name,
@@ -241,9 +261,13 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 		runArgs = append(runArgs, "--privileged")
 	}
 
-	if machine.spec.Network != "" {
-		runArgs = append(runArgs, "--network", machine.spec.Network)
-		runArgs = append(runArgs, "--network-alias", machine.Hostname())
+	if len(machine.spec.Networks) > 0 {
+		network := machine.spec.Networks[0]
+		log.Infof("Connecting %s to the %s network...", name, network)
+		runArgs = append(runArgs, "--network", machine.spec.Networks[0])
+		if network != "bridge" {
+			runArgs = append(runArgs, "--network-alias", machine.Hostname())
+		}
 	}
 
 	return runArgs

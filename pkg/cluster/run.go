@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
-	"sigs.k8s.io/kind/pkg/docker"
-	"sigs.k8s.io/kind/pkg/exec"
+
+	"github.com/weaveworks/footloose/pkg/docker"
+	"github.com/weaveworks/footloose/pkg/exec"
 )
 
 // run runs a command. It will output the combined stdout/error on failure.
