@@ -53,10 +53,10 @@ type Machine struct {
 	Privileged bool `json:"privileged,omitempty"`
 	// Volumes is the list of volumes attached to this machine.
 	Volumes []Volume `json:"volumes,omitempty"`
-	// Network is the user-defined docker network this machine is attached to.
-	// This network has to be created manually before creating the containers
-	// via "docker network create mynetwork"
-	Network string `json:"network,omitempty"`
+	// Networks is the list of user-defined docker networks this machine is
+	// attached to. These networks have to be created manually before creating the
+	// containers via "docker network create mynetwork"
+	Networks []string `json:"networks,omitempty"`
 	// PortMappings is the list of ports to expose to the host.
 	PortMappings []PortMapping `json:"portMappings,omitempty"`
 	// Cmd is a cmd which will be run in the container.
