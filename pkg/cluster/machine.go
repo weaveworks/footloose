@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
 	"github.com/weaveworks/footloose/pkg/config"
-	"sigs.k8s.io/kind/pkg/docker"
+	"github.com/weaveworks/footloose/pkg/docker"
 )
 
 type machineCache struct {

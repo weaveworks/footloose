@@ -15,9 +15,10 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
+
 	"github.com/weaveworks/footloose/pkg/config"
-	"sigs.k8s.io/kind/pkg/docker"
-	"sigs.k8s.io/kind/pkg/exec"
+	"github.com/weaveworks/footloose/pkg/docker"
+	"github.com/weaveworks/footloose/pkg/exec"
 )
 
 // Container represents a running machine.

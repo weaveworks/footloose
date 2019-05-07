@@ -51,5 +51,3 @@ gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
-sigs.k8s.io/kind v0.0.0-20190204012257-d1773a79317d h1:1VZmE/ys6JxyHl2d+Xlc9rqlChLiJgW1j2ofHSPv69w=
-sigs.k8s.io/kind v0.0.0-20190204012257-d1773a79317d/go.mod h1:4luVoV3UfY4B4ZNzvRPdM0egGo9zqFn/drRXqYPw9Ig=

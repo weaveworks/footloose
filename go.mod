@@ -15,5 +15,4 @@ require (
 	github.com/stretchr/testify v1.2.2
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2 // indirect
 	gopkg.in/yaml.v2 v2.2.2
-	sigs.k8s.io/kind v0.0.0-20190204012257-d1773a79317d
 )
