@@ -19,6 +19,9 @@ RUN find /etc/systemd/system \
     -not -name '*systemd-user-sessions*' \
     -exec rm \{} \;
 
+RUN >/etc/machine-id
+RUN >/var/lib/dbus/machine-id
+
 EXPOSE 22
 
 RUN systemctl set-default multi-user.target
