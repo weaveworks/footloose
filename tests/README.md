@@ -53,7 +53,7 @@ to write a `.cmd` file with a list of commands to run and compare the output
 
 ```shell
 # Test footloose ssh can execute a remote command
-footloose config create --config %testName.footloose --name %testName --key %testName-key --image quay.io/footloose/%image
+footloose config create --override --config %testName.footloose --name %testName --key %testName-key --image quay.io/footloose/%image
 footloose create --config %testName.footloose
 %out footloose --config %testName.footloose ssh root@node0 hostname
 footloose delete --config %testName.footloose
@@ -64,6 +64,11 @@ And the corresponding golden output file (`test-ssh-remote-command-%image.golden
 ```shell
 node0
 ```
+
+The **--override** flag should be used with the **config create** command because otherwise 
+the first run of a test will leave a config file behind and additional runs will fail
+to avoid overwriting the original config file. The only exception to this rule is in tests
+that are intended to validate the override mechanism itself.
 
 Some variables and directives are supplied by the test framework:
 
