@@ -163,7 +163,7 @@ Interesting things can be done with `footloose`!
 - [Specify which ports on the hosts should be bound to services](examples/simple-hostPort/README.md)
 - [Use Ansible to provision machines](./examples/ansible/README.md)
 - [Run Docker inside `footloose` machines!](./examples/docker-in-docker/README.md)
-- [Isolation and DNS resolution with customer docker networks](./examples/user-defined-network/README.md)
+- [Isolation and DNS resolution with custom docker networks](./examples/user-defined-network/README.md)
 - [OpenShift with footloose](https://github.com/carlosedp/openshift-on-footloose)
 
 ## Under the hood
