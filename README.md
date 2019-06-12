@@ -26,7 +26,7 @@ about it is: [Vagrant](https://www.vagrantup.com/), but with containers.
 ### Linux
 
 ```console
-curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.4.0/footloose-0.4.0-linux-x86_64
+curl -Lo footloose https://github.com/weaveworks/footloose/releases/download/0.5.0/footloose-0.5.0-linux-x86_64
 chmod +x footloose
 sudo mv footloose /usr/local/bin/
 ```
@@ -36,7 +36,7 @@ sudo mv footloose /usr/local/bin/
 On macOS we provide a direct download and a homebrew tap:
 
 ```console
-curl --silent --location https://github.com/weaveworks/footloose/releases/download/0.4.0/footloose-0.4.0-darwin-x86_64.tar.gz | tar xz
+curl --silent --location https://github.com/weaveworks/footloose/releases/download/0.5.0/footloose-0.5.0-darwin-x86_64.tar.gz | tar xz
 sudo mv footloose /usr/local/bin
 ```
 
