@@ -9,6 +9,8 @@ import (
 
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/docker"
+	"github.com/weaveworks/footloose/pkg/exec"
+	"github.com/weaveworks/footloose/pkg/ignite"
 )
 
 type machineCache struct {
@@ -34,6 +36,14 @@ type Machine struct {
 // ContainerName is the name of the running container corresponding to this
 // Machine.
 func (m *Machine) ContainerName() string {
+	if m.IsIgnite() {
+		filter := fmt.Sprintf(`label=ignite.name=%s`, m.name)
+		cid, err := exec.ExecuteCommand("docker", "ps", "-q", "-f", filter)
+		if err != nil || len(cid) == 0 {
+			return m.name
+		}
+		return cid
+	}
 	return m.name
 }
 
@@ -45,6 +55,10 @@ func (m *Machine) Hostname() string {
 // IsCreated returns if a machine is has been created. A created machine could
 // either be running or stopped.
 func (m *Machine) IsCreated() bool {
+	if m.IsIgnite() {
+		return ignite.IsCreated(m.name)
+	}
+
 	res, _ := docker.Inspect(m.name, "{{.Name}}")
 	if len(res) > 0 && len(res[0]) > 0 {
 		return true
@@ -54,6 +68,10 @@ func (m *Machine) IsCreated() bool {
 
 // IsStarted returns if a machine is currently started or not.
 func (m *Machine) IsStarted() bool {
+	if m.IsIgnite() {
+		return ignite.IsCreated(m.name)
+	}
+
 	res, _ := docker.Inspect(m.name, "{{.State.Running}}")
 	parsed, _ := strconv.ParseBool(strings.Trim(res[0], `'`))
 	if parsed {
@@ -69,9 +87,9 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 		return hostPort, nil
 	}
 	// retrieve the specific port mapping using docker inspect
-	lines, err := docker.Inspect(m.name, fmt.Sprintf("{{(index (index .NetworkSettings.Ports \"%d/tcp\") 0).HostPort}}", containerPort))
+	lines, err := docker.Inspect(m.ContainerName(), fmt.Sprintf("{{(index (index .NetworkSettings.Ports \"%d/tcp\") 0).HostPort}}", containerPort))
 	if err != nil {
-		return -1, errors.Wrap(err, "hostport: failed to inspect container")
+		return -1, errors.Wrapf(err, "hostport: failed to inspect container: %v", lines)
 	}
 	if len(lines) != 1 {
 		return -1, errors.Errorf("hostport: should only be one line, got %d lines", len(lines))
@@ -87,4 +105,8 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 		return -1, errors.Wrap(err, "hostport: failed to parse string to int")
 	}
 	return m.ports[containerPort], nil
+}
+
+func (m *Machine) IsIgnite() bool {
+	return m.spec.Backend == ignite.IgniteName
 }
