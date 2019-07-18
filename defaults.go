@@ -23,6 +23,7 @@ var defaultConfig = config.Config{
 			PortMappings: []config.PortMapping{{
 				ContainerPort: 22,
 			}},
+			Backend: "docker",
 		},
 	}},
 }

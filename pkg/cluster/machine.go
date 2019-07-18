@@ -34,6 +34,14 @@ type Machine struct {
 // ContainerName is the name of the running container corresponding to this
 // Machine.
 func (m *Machine) ContainerName() string {
+	if m.spec.Backend == "ignite" {
+		filter := fmt.Sprintf(`label=ignite.name=%s`, m.name)
+		cid, err := executeCommand("docker", "ps", "-q", "-f", filter)
+		if err != nil || len(cid) == 0 {
+			return m.name
+		}
+		return cid
+	}
 	return m.name
 }
 
@@ -69,9 +77,9 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 		return hostPort, nil
 	}
 	// retrieve the specific port mapping using docker inspect
-	lines, err := docker.Inspect(m.name, fmt.Sprintf("{{(index (index .NetworkSettings.Ports \"%d/tcp\") 0).HostPort}}", containerPort))
+	lines, err := docker.Inspect(m.ContainerName(), fmt.Sprintf("{{(index (index .NetworkSettings.Ports \"%d/tcp\") 0).HostPort}}", containerPort))
 	if err != nil {
-		return -1, errors.Wrap(err, "hostport: failed to inspect container")
+		return -1, errors.Wrapf(err, "hostport: failed to inspect container: %v", lines)
 	}
 	if len(lines) != 1 {
 		return -1, errors.Errorf("hostport: should only be one line, got %d lines", len(lines))

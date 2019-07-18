@@ -61,6 +61,42 @@ type Machine struct {
 	PortMappings []PortMapping `json:"portMappings,omitempty"`
 	// Cmd is a cmd which will be run in the container.
 	Cmd string `json:"cmd,omitempty"`
+	// Backend specifies the runtime backend for this machine
+	Backend string `json:"backend,omitempty"`
+	// Ignite specifies ignite-specific options
+	Ignite *Ignite `json:"ignite,omitempty"`
+}
+
+func (m *Machine) IgniteConfig() Ignite {
+	i := Ignite{}
+	if m.Ignite != nil {
+		i = *m.Ignite
+	}
+	if i.CPUs == 0 {
+		i.CPUs = 2
+	}
+	if i.Memory == "" {
+		i.Memory = "1GB"
+	}
+	if i.Disk == "" {
+		i.Disk = "4GB"
+	}
+	if i.Kernel == "" {
+		i.Kernel = "weaveworks/ignite-kernel:4.19.47"
+	}
+	return i
+}
+
+// Ignite holds ignite-specific config
+type Ignite struct {
+	// CPUs specify the number of vCPUs to use. Default: 2
+	CPUs uint64 `json:"cpus,omitempty"`
+	// Memory specifies the amount of RAM the VM should have. Default: 1GB
+	Memory string `json:"memory,omitempty"`
+	// Disk specifies the amount of disk the VM should have. Default: 4GB
+	Disk string `json:"disk,omitempty"`
+	// Kernel specifies an OCI image to use for the kernel overlay
+	Kernel string `json:"kernel,omitempty"`
 }
 
 // validate checks basic rules for Machine's fields
