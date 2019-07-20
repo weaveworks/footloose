@@ -30,6 +30,12 @@ const (
 // Create creates a container with "docker create", with some error handling
 // it will return the ID of the created container if any, even on error
 func Create(name string, spec *config.Machine, pubKeyPath string) (id string, err error) {
+	copyFiles := spec.IgniteConfig().CopyFiles
+	if copyFiles == nil {
+		copyFiles = make(map[string]string)
+	}
+	copyFiles[pubKeyPath] = "/root/.ssh/authorized_keys"
+
 	runArgs := []string{
 		"run",
 		spec.Image,
@@ -38,7 +44,9 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 		fmt.Sprintf("--memory=%s", spec.IgniteConfig().Memory),
 		fmt.Sprintf("--size=%s", spec.IgniteConfig().Disk),
 		fmt.Sprintf("--kernel-image=%s", spec.IgniteConfig().Kernel),
-		fmt.Sprintf("--copy-files=%s:/root/.ssh/authorized_keys", pubKeyPath),
+	}
+	for _, v := range setupCopyFiles(copyFiles) {
+		runArgs = append(runArgs, v)
 	}
 
 	for i, mapping := range spec.PortMappings {
@@ -51,6 +59,15 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 
 	_, err = exec.ExecuteCommand(execName, runArgs...)
 	return "", err
+}
+
+func setupCopyFiles(copyFiles map[string]string) []string {
+	ret := []string{}
+	for k, v := range copyFiles {
+		s := fmt.Sprintf("--copy-files=%s:%s", k, v)
+		ret = append(ret, s)
+	}
+	return ret
 }
 
 func IsCreated(name string) bool {
