@@ -18,6 +18,7 @@ package ignite
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/exec"
@@ -32,9 +33,9 @@ const (
 func Create(name string, spec *config.Machine, pubKeyPath string) (id string, err error) {
 	copyFiles := spec.IgniteConfig().CopyFiles
 	if copyFiles == nil {
-		copyFiles = make(map[string]string)
+		copyFiles = make([]string, 0)
 	}
-	copyFiles[pubKeyPath] = "/root/.ssh/authorized_keys"
+	copyFiles = append(copyFiles, pubKeyPath+",/root/.ssh/authorized_keys")
 
 	runArgs := []string{
 		"run",
@@ -61,10 +62,11 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 	return "", err
 }
 
-func setupCopyFiles(copyFiles map[string]string) []string {
+func setupCopyFiles(copyFiles []string) []string {
 	ret := []string{}
-	for k, v := range copyFiles {
-		s := fmt.Sprintf("--copy-files=%s:%s", k, v)
+	for _, str := range copyFiles {
+		v := strings.Split(str, ",")
+		s := fmt.Sprintf("--copy-files=%s:%s", v[0], v[1])
 		ret = append(ret, s)
 	}
 	return ret
