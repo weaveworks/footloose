@@ -18,7 +18,6 @@ package ignite
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/exec"
@@ -31,11 +30,6 @@ const (
 // Create creates a container with "docker create", with some error handling
 // it will return the ID of the created container if any, even on error
 func Create(name string, spec *config.Machine, pubKeyPath string) (id string, err error) {
-	copyFiles := spec.IgniteConfig().CopyFiles
-	if copyFiles == nil {
-		copyFiles = make([]string, 0)
-	}
-	copyFiles = append(copyFiles, pubKeyPath+",/root/.ssh/authorized_keys")
 
 	runArgs := []string{
 		"run",
@@ -46,6 +40,12 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 		fmt.Sprintf("--size=%s", spec.IgniteConfig().Disk),
 		fmt.Sprintf("--kernel-image=%s", spec.IgniteConfig().Kernel),
 	}
+
+	copyFiles := spec.IgniteConfig().CopyFiles
+	if copyFiles == nil {
+		copyFiles = make(map[string]string)
+	}
+	copyFiles[pubKeyPath] = "/root/.ssh/authorized_keys"
 	for _, v := range setupCopyFiles(copyFiles) {
 		runArgs = append(runArgs, v)
 	}
@@ -62,11 +62,10 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 	return "", err
 }
 
-func setupCopyFiles(copyFiles []string) []string {
+func setupCopyFiles(copyFiles map[string]string) []string {
 	ret := []string{}
-	for _, str := range copyFiles {
-		v := strings.Split(str, ",")
-		s := fmt.Sprintf("--copy-files=%s:%s", v[0], v[1])
+	for k, v := range copyFiles {
+		s := fmt.Sprintf("--copy-files=%s:%s", k, v)
 		ret = append(ret, s)
 	}
 	return ret

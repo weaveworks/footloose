@@ -98,7 +98,7 @@ type Ignite struct {
 	// Kernel specifies an OCI image to use for the kernel overlay
 	Kernel string `json:"kernel,omitempty"`
 	// Files to copy
-	CopyFiles []string `json:"copyFiles,omitempty"`
+	CopyFiles map[string]string `json:"copyFiles,omitempty"`
 }
 
 // validate checks basic rules for Machine's fields
