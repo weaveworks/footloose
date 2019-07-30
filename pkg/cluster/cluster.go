@@ -16,7 +16,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
-
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/docker"
 	"github.com/weaveworks/footloose/pkg/exec"
@@ -154,11 +153,6 @@ mkdir $sshdir; chmod 700 $sshdir
 touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 `
 
-/*func igniteImageName(dockerImgName string) (string, error) {
-	imgName := "footloose-" + strings.ReplaceAll(dockerImgName, "/", "-")
-	return strings.ReplaceAll(imgName, ":", "-"), nil
-}*/
-
 func (c *Cluster) publicKey() ([]byte, error) {
 	path, _ := homedir.Expand(c.spec.Cluster.PrivateKey)
 	return ioutil.ReadFile(path + ".pub")
@@ -208,10 +202,6 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 			return err
 		}
 
-		// We connect the first network in with the run command, connect the remaining
-		// ones.
-		// TODO(damien): Split run into create+start so we can connect all networks
-		// before the container is started.
 		if len(machine.spec.Networks) > 1 {
 			for _, network := range machine.spec.Networks[1:] {
 				log.Infof("Connecting %s to the %s network...", name, network)
