@@ -17,9 +17,13 @@ limitations under the License.
 package exec
 
 import (
+	"fmt"
 	"io"
+	"os"
 	osexec "os/exec"
+	"strings"
 
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -66,4 +70,41 @@ func (cmd *LocalCmd) SetStderr(w io.Writer) {
 func (cmd *LocalCmd) Run() error {
 	log.Debugf("Running: %v %v", cmd.Path, cmd.Args)
 	return cmd.Cmd.Run()
+}
+
+func ExecuteCommand(command string, args ...string) (string, error) {
+	cmd := osexec.Command(command, args...)
+	out, err := cmd.CombinedOutput()
+	cmdArgs := strings.Join(cmd.Args, " ")
+	//log.Debugf("Command %q returned %q\n", cmdArgs, out)
+	if err != nil {
+		return "", errors.Wrapf(err, "command %q exited with %q", cmdArgs, out)
+	}
+
+	// TODO: strings.Builder?
+	return strings.TrimSpace(string(out)), nil
+}
+
+func ExecForeground(command string, args ...string) (int, error) {
+	cmd := osexec.Command(command, args...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	cmdArgs := strings.Join(cmd.Args, " ")
+
+	var cmdErr error
+	var exitCode int
+
+	if err != nil {
+		cmdErr = fmt.Errorf("external command %q exited with an error: %v", cmdArgs, err)
+
+		if exitError, ok := err.(*osexec.ExitError); ok {
+			exitCode = exitError.ExitCode()
+		} else {
+			cmdErr = fmt.Errorf("failed to get exit code for external command %q", cmdArgs)
+		}
+	}
+
+	return exitCode, cmdErr
 }

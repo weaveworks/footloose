@@ -142,11 +142,36 @@ cluster:
   privateKey: cluster-key
 machines:
 - count: 3
+  backend: docker
   spec:
     image: quay.io/footloose/centos7
     name: node%d
     portMappings:
     - containerPort: 22
+```
+
+If you want to use [Ignite](https://github.com/weaveworks/ignite) as the backend in order
+to run real VMs, change to `backend: ignite`.
+
+```yaml
+cluster:
+  name: cluster
+  privateKey: cluster-key
+machines:
+- count: 3
+  backend: ignite
+  spec:
+    image: weaveworks/ignite-centos:7
+    name: node%d
+    portMappings:
+    - containerPort: 22
+  # All Ignite options shown below here are optional and can be omitted.
+  # These are the defaults:
+  ignite:
+    cpus: 2
+    memory: 1GB
+    disk: 4GB
+    kernel: weaveworks/ignite-ubuntu:4.19.47
 ```
 
 This configuration can naturally be edited by hand. The full list of
@@ -221,6 +246,10 @@ Failed to install release agent, ignoring: File exists
 [  OK  ] Started OpenSSH server daemon.
 [  OK  ] Reached target Multi-User System.
 ```
+
+### Run real VMs with Ignite
+
+[![asciicast](https://asciinema.org/a/HRrgSAjhc0gFGOCnjuqKDwIoN.svg)](https://asciinema.org/a/HRrgSAjhc0gFGOCnjuqKDwIoN)
 
 ## FAQ
 

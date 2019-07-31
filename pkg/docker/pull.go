@@ -33,7 +33,7 @@ func PullIfNotPresent(image string, retries int) (pulled bool, err error) {
 	// if this did not return an error, then the image exists locally
 	cmd := exec.Command("docker", "inspect", "--type=image", image)
 	if err := cmd.Run(); err == nil {
-		log.Infof("Image: %s present locally", image)
+		log.Infof("Docker Image: %s present locally", image)
 		return false, nil
 	}
 	// otherwise try to pull it

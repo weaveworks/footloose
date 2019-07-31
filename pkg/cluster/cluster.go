@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,10 +16,10 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
-
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/docker"
 	"github.com/weaveworks/footloose/pkg/exec"
+	"github.com/weaveworks/footloose/pkg/ignite"
 )
 
 // Container represents a running machine.
@@ -34,8 +35,7 @@ type Cluster struct {
 // New creates a new cluster. It takes as input the description of the cluster
 // and its machines.
 func New(conf config.Config) (*Cluster, error) {
-	err := conf.Validate()
-	if err != nil {
+	if err := conf.Validate(); err != nil {
 		return nil, err
 	}
 	return &Cluster{
@@ -161,6 +161,11 @@ func (c *Cluster) publicKey() ([]byte, error) {
 func (c *Cluster) createMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 
+	publicKey, err := c.publicKey()
+	if err != nil {
+		return err
+	}
+
 	// Start the container.
 	log.Infof("Creating machine: %s ...", name)
 
@@ -174,44 +179,51 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 		cmd = machine.spec.Cmd
 	}
 
-	runArgs := c.createMachineRunArgs(machine, name, i)
-	_, err := docker.Create(machine.spec.Image,
-		runArgs,
-		[]string{cmd},
-	)
-	if err != nil {
-		return err
-	}
+	if machine.IsIgnite() {
+		pubKeyPath := c.spec.Cluster.PrivateKey + ".pub"
+		if !filepath.IsAbs(pubKeyPath) {
+			wd, err := os.Getwd()
+			if err != nil {
+				return err
+			}
+			pubKeyPath = filepath.Join(wd, pubKeyPath)
+		}
 
-	// We connect the first network in with the run command, connect the remaining
-	// ones.
-	// TODO(damien): Split run into create+start so we can connect all networks
-	// before the container is started.
-	if len(machine.spec.Networks) > 1 {
-		for _, network := range machine.spec.Networks[1:] {
-			log.Infof("Connecting %s to the %s network...", name, network)
-			if network == "bridge" {
-				docker.ConnectNetwork(name, network)
-			} else {
-				docker.ConnectNetworkWithAlias(name, network, machine.Hostname())
+		if _, err := ignite.Create(machine.name, machine.spec, pubKeyPath); err != nil {
+			return err
+		}
+	} else {
+		runArgs := c.createMachineRunArgs(machine, name, i)
+		_, err := docker.Create(machine.spec.Image,
+			runArgs,
+			[]string{cmd},
+		)
+		if err != nil {
+			return err
+		}
+
+		if len(machine.spec.Networks) > 1 {
+			for _, network := range machine.spec.Networks[1:] {
+				log.Infof("Connecting %s to the %s network...", name, network)
+				if network == "bridge" {
+					docker.ConnectNetwork(name, network)
+				} else {
+					docker.ConnectNetworkWithAlias(name, network, machine.Hostname())
+				}
 			}
 		}
-	}
 
-	if err := docker.Start(name); err != nil {
-		return err
-	}
+		if err := docker.Start(name); err != nil {
+			return err
+		}
 
-	// Initial provisioning.
-	if err := containerRunShell(name, initScript); err != nil {
-		return err
-	}
-	publicKey, err := c.publicKey()
-	if err != nil {
-		return err
-	}
-	if err := copy(name, publicKey, "/root/.ssh/authorized_keys"); err != nil {
-		return err
+		// Initial provisioning.
+		if err := containerRunShell(name, initScript); err != nil {
+			return err
+		}
+		if err := copy(name, publicKey, "/root/.ssh/authorized_keys"); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -288,9 +300,17 @@ func (c *Cluster) Create() error {
 
 func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
+
 	if !machine.IsCreated() {
 		log.Infof("Machine %s hasn't been created...", name)
 		return nil
+	}
+
+	if machine.IsIgnite() {
+		if machine.IsStarted() {
+			ignite.Stop(machine.name)
+		}
+		return ignite.Remove(machine.name)
 	}
 
 	if machine.IsStarted() {
@@ -565,6 +585,7 @@ func (c *Cluster) SSH(nodename string, username string, remoteArgs ...string) er
 	if err != nil {
 		return err
 	}
+
 	hostPort, err := machine.HostPort(22)
 	if err != nil {
 		return err
@@ -602,5 +623,6 @@ func (c *Cluster) SSH(nodename string, username string, remoteArgs ...string) er
 		retries--
 		time.Sleep(200 * time.Millisecond)
 	}
+
 	return err
 }

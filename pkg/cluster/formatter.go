@@ -106,6 +106,7 @@ type tableMachine struct {
 	Image     string
 	Cmd       string
 	State     string
+	Backend   string
 }
 
 func writeColumns(w io.Writer, cols []string) {
@@ -116,7 +117,7 @@ func writeColumns(w io.Writer, cols []string) {
 func (TableFormatter) Format(machines []*Machine) error {
 	const padding = 3
 	table := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
-	writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE"})
+	writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
 	for _, m := range machines {
 		state := Stopped
 		if m.IsStarted() {
@@ -142,8 +143,9 @@ func (TableFormatter) Format(machines []*Machine) error {
 			Image:     m.spec.Image,
 			Cmd:       m.spec.Cmd,
 			State:     state,
+			Backend:   m.spec.Backend,
 		}
-		writeColumns(table, []string{tm.Container, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State})
+		writeColumns(table, []string{tm.Container, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State, tm.Backend})
 	}
 	table.Flush()
 	return nil
