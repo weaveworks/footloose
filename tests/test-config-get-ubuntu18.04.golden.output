@@ -1,4 +1,5 @@
 {
   "name": "node%d",
-  "image": "quay.io/footloose/%image"
+  "image": "quay.io/footloose/%image",
+  "backend": "docker"
 }
