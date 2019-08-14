@@ -377,40 +377,41 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 	// cluster related data.
 	machines = c.gatherMachinesByCluster()
 	for _, m := range machines {
-		if m.IsCreated() {
-			inspect, err := c.gatherMachineDetails(m.name)
-			if err != nil {
-				return machines, err
-			}
-			// Set Ports
-			ports := make([]config.PortMapping, 0)
-			for k, v := range inspect.NetworkSettings.Ports {
-				if len(v) < 1 {
-					continue
-				}
-				p := config.PortMapping{}
-				hostPort, _ := strconv.Atoi(v[0].HostPort)
-				p.HostPort = uint16(k.Int())
-				p.ContainerPort = uint16(hostPort)
-				p.Address = v[0].HostIP
-				ports = append(ports, p)
-			}
-			m.spec.PortMappings = ports
-			// Volumes
-			var volumes []config.Volume
-			for _, mount := range inspect.Mounts {
-				v := config.Volume{
-					Type:        string(mount.Type),
-					Source:      mount.Source,
-					Destination: mount.Destination,
-					ReadOnly:    mount.RW,
-				}
-				volumes = append(volumes, v)
-			}
-			m.spec.Volumes = volumes
-			m.spec.Cmd = strings.Join(inspect.Config.Cmd, ",")
-			m.ip = inspect.NetworkSettings.IPAddress
+		if !m.IsCreated() {
+			continue
 		}
+		inspect, err := c.gatherMachineDetails(m.name)
+		if err != nil {
+			return machines, err
+		}
+		// Set Ports
+		ports := make([]config.PortMapping, 0)
+		for k, v := range inspect.NetworkSettings.Ports {
+			if len(v) < 1 {
+				continue
+			}
+			p := config.PortMapping{}
+			hostPort, _ := strconv.Atoi(v[0].HostPort)
+			p.HostPort = uint16(k.Int())
+			p.ContainerPort = uint16(hostPort)
+			p.Address = v[0].HostIP
+			ports = append(ports, p)
+		}
+		m.spec.PortMappings = ports
+		// Volumes
+		var volumes []config.Volume
+		for _, mount := range inspect.Mounts {
+			v := config.Volume{
+				Type:        string(mount.Type),
+				Source:      mount.Source,
+				Destination: mount.Destination,
+				ReadOnly:    mount.RW,
+			}
+			volumes = append(volumes, v)
+		}
+		m.spec.Volumes = volumes
+		m.spec.Cmd = strings.Join(inspect.Config.Cmd, ",")
+		m.ip = inspect.NetworkSettings.IPAddress
 	}
 	return
 }
