@@ -377,7 +377,7 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 	// cluster related data.
 	machines = c.gatherMachinesByCluster()
 	for _, m := range machines {
-		if !m.IsCreated {
+		if !m.IsCreated() {
 			continue
 		}
 		inspect, err := c.gatherMachineDetails(m.name)
