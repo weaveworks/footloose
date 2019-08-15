@@ -412,6 +412,8 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 		m.spec.Volumes = volumes
 		m.spec.Cmd = strings.Join(inspect.Config.Cmd, ",")
 		m.ip = inspect.NetworkSettings.IPAddress
+		m.runtimeNetworks = NewRuntimeNetworks(inspect.NetworkSettings.Networks)
+
 	}
 	return
 }
