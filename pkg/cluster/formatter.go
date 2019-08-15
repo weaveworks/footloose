@@ -41,13 +41,14 @@ const (
 )
 
 type status struct {
-	Container string          `json:"container"`
-	State     string          `json:"state"`
-	Spec      *config.Machine `json:"spec,omitempty"`
-	Ports     []port          `json:"ports"`
-	Hostname  string          `json:"hostname"`
-	Image     string          `json:"image"`
-	Command   string          `json:"cmd"`
+	Container       string            `json:"container"`
+	State           string            `json:"state"`
+	Spec            *config.Machine   `json:"spec,omitempty"`
+	Ports           []port            `json:"ports"`
+	Hostname        string            `json:"hostname"`
+	Image           string            `json:"image"`
+	Command         string            `json:"cmd"`
+	RuntimeNetworks []*RuntimeNetwork `json:"runtime_networks,omitempty"`
 }
 
 // Format will output to stdout in JSON format.
@@ -82,6 +83,8 @@ func (JSONFormatter) Format(machines []*Machine) error {
 			}
 		}
 		s.Ports = ports
+		s.RuntimeNetworks = m.runtimeNetworks
+
 		statuses = append(statuses, s)
 	}
 
