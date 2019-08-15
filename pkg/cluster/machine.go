@@ -29,6 +29,7 @@ type Machine struct {
 	// container ip.
 	ip string
 
+	runtimeNetworks []*RuntimeNetwork
 	// Fields that are cached from the docker daemon.
 	machineCache
 }
