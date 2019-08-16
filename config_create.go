@@ -30,6 +30,9 @@ func init() {
 	private := &defaultConfig.Cluster.PrivateKey
 	configCreateCmd.PersistentFlags().StringVarP(private, "key", "k", *private, "Name of the private and public key files")
 
+	networks := &defaultConfig.Machines[0].Spec.Networks
+	configCreateCmd.PersistentFlags().StringSliceVar(networks, "networks", *networks, "Networks names the machines are assigned to")
+
 	replicas := &defaultConfig.Machines[0].Count
 	configCreateCmd.PersistentFlags().IntVarP(replicas, "replicas", "r", *replicas, "Number of machine replicas")
 
