@@ -23,13 +23,13 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 		fmt.Sprintf("--memory=%s", spec.IgniteConfig().Memory),
 		fmt.Sprintf("--size=%s", spec.IgniteConfig().Disk),
 		fmt.Sprintf("--kernel-image=%s", spec.IgniteConfig().Kernel),
+		fmt.Sprintf("--ssh=%s", pubKeyPath),
 	}
 
 	copyFiles := spec.IgniteConfig().CopyFiles
 	if copyFiles == nil {
 		copyFiles = make(map[string]string)
 	}
-	copyFiles[pubKeyPath] = "/root/.ssh/authorized_keys"
 	for _, v := range setupCopyFiles(copyFiles) {
 		runArgs = append(runArgs, v)
 	}
