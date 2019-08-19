@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/pkg/errors"
-
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/docker"
 	"github.com/weaveworks/footloose/pkg/exec"
@@ -107,6 +108,12 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 	return m.ports[containerPort], nil
 }
 
-func (m *Machine) IsIgnite() bool {
-	return m.spec.Backend == ignite.IgniteName
+func (m *Machine) IsIgnite() (b bool) {
+	b = m.spec.Backend == ignite.IgniteName
+
+	if b && syscall.Getuid() != 0 {
+		log.Fatalf("Footloose needs to run as root to use the %q backend", ignite.IgniteName)
+	}
+
+	return
 }
