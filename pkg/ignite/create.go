@@ -12,6 +12,10 @@ const (
 	IgniteName = "ignite"
 )
 
+// This offset is incremented for each port so we avoid
+// duplicate port bindings (and hopefully port collisions).
+var portOffset uint16
+
 // Create creates a container with "docker create", with some error handling
 // it will return the ID of the created container if any, even on error
 func Create(name string, spec *config.Machine, pubKeyPath string) (id string, err error) {
@@ -42,6 +46,10 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 			if mapping.HostPort, err = freePort(); err != nil {
 				return "", err
 			}
+		} else {
+			// If defined, apply an offset so all VMs won't use the same port
+			mapping.HostPort += portOffset
+			portOffset++
 		}
 
 		runArgs = append(runArgs, fmt.Sprintf("--ports=%d:%d", int(mapping.HostPort), mapping.ContainerPort))
