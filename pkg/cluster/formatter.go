@@ -32,6 +32,8 @@ type port struct {
 }
 
 const (
+	// NotCreated status of a machine
+	NotCreated = "Not created"
 	// Stopped status of a machine
 	Stopped = "Stopped"
 	// Running status of a machine
@@ -58,9 +60,12 @@ func (JSONFormatter) Format(machines []*Machine) error {
 		s.Image = m.spec.Image
 		s.Command = m.spec.Cmd
 		s.Spec = m.spec
-		state := "Stopped"
-		if m.IsStarted() {
-			state = "Running"
+		state := NotCreated
+		if m.IsCreated() {
+			state = Stopped
+			if m.IsStarted() {
+				state = Running
+			}
 		}
 		s.State = state
 		var ports []port
@@ -119,9 +124,12 @@ func (TableFormatter) Format(machines []*Machine) error {
 	table := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
 	writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
 	for _, m := range machines {
-		state := Stopped
-		if m.IsStarted() {
-			state = Running
+		state := NotCreated
+		if m.IsCreated() {
+			state = Stopped
+			if m.IsStarted() {
+				state = Running
+			}
 		}
 		var ports []string
 		for k, v := range m.ports {
