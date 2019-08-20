@@ -3,7 +3,6 @@ package ignite
 import (
 	"fmt"
 	"net"
-	"path"
 	"path/filepath"
 
 	"github.com/weaveworks/footloose/pkg/config"
@@ -71,14 +70,14 @@ func setupCopyFiles(copyFiles map[string]string) []string {
 }
 
 func toAbs(p string) string {
-	ap := p
-	if !path.IsAbs(ap) {
-		aap, err := filepath.Abs(ap)
-		ap = aap
-		// if Abs reports an error just return the original path 'p'
-		if err != nil {
-			ap = p
-		}
+	if filepath.IsAbs(p) {
+		return p
+	}
+
+	ap, err := filepath.Abs(p)
+	// if Abs reports an error just return the original path 'p'
+	if err != nil {
+		return p
 	}
 	return ap
 }
