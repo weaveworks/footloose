@@ -70,15 +70,10 @@ func setupCopyFiles(copyFiles map[string]string) []string {
 }
 
 func toAbs(p string) string {
-	if filepath.IsAbs(p) {
+	if ap, err := filepath.Abs(p); err == nil {
 		return p
 	}
-
-	ap, err := filepath.Abs(p)
 	// if Abs reports an error just return the original path 'p'
-	if err != nil {
-		return p
-	}
 	return ap
 }
 
