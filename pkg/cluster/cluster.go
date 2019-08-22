@@ -63,6 +63,11 @@ func NewFromFile(path string) (*Cluster, error) {
 	return NewFromYAML(data)
 }
 
+// Name returns the cluster name.
+func (c *Cluster) Name() string {
+	return c.spec.Cluster.Name
+}
+
 // Save writes the Cluster configure to a file.
 func (c *Cluster) Save(path string) error {
 	data, err := yaml.Marshal(c.spec)
@@ -76,15 +81,28 @@ func f(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }
 
-func (c *Cluster) containerName(machine *config.Machine, i int) string {
+func (c *Cluster) containerName(machine *config.Machine) string {
+	return fmt.Sprintf("%s-%s", c.spec.Cluster.Name, machine.Name)
+}
+
+func (c *Cluster) containerNameWithIndex(machine *config.Machine, i int) string {
 	format := "%s-" + machine.Name
 	return f(format, c.spec.Cluster.Name, i)
+}
+
+// NewMachine creates a new Machine in the cluster.
+func (c *Cluster) NewMachine(spec *config.Machine) *Machine {
+	return &Machine{
+		spec:     spec,
+		name:     c.containerName(spec),
+		hostname: spec.Name,
+	}
 }
 
 func (c *Cluster) machine(spec *config.Machine, i int) *Machine {
 	return &Machine{
 		spec:     spec,
-		name:     c.containerName(spec, i),
+		name:     c.containerNameWithIndex(spec, i),
 		hostname: f(spec.Name, i),
 	}
 }
@@ -158,7 +176,8 @@ func (c *Cluster) publicKey() ([]byte, error) {
 	return ioutil.ReadFile(path + ".pub")
 }
 
-func (c *Cluster) createMachine(machine *Machine, i int) error {
+// CreateMachine creates and starts a new machine in the cluster.
+func (c *Cluster) CreateMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 
 	publicKey, err := c.publicKey()
@@ -299,10 +318,11 @@ func (c *Cluster) Create() error {
 			return err
 		}
 	}
-	return c.forEachMachine(c.createMachine)
+	return c.forEachMachine(c.CreateMachine)
 }
 
-func (c *Cluster) deleteMachine(machine *Machine, i int) error {
+// DeleteMachine remove a Machine from the cluster.
+func (c *Cluster) DeleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 	if !machine.IsCreated() {
 		log.Infof("Machine %s hasn't been created...", name)
@@ -336,7 +356,7 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 
 // Delete deletes the cluster.
 func (c *Cluster) Delete() error {
-	return c.forEachMachine(c.deleteMachine)
+	return c.forEachMachine(c.DeleteMachine)
 }
 
 // Inspect will generate information about running or stopped machines.
