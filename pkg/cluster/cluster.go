@@ -357,7 +357,7 @@ func (c *Cluster) machineFilering(machines []*Machine, hostnames []string) []*Ma
 	for _, machine := range hostnames {
 		machinesToKeep[machine] = false
 	}
-	// newMcahines is the filtered list
+	// newMachines is the filtered list
 	newMachines := make([]*Machine, 0)
 	for _, m := range machines {
 		if _, ok := machinesToKeep[m.hostname]; ok {
