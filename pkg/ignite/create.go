@@ -3,6 +3,7 @@ package ignite
 import (
 	"fmt"
 	"net"
+	"path/filepath"
 
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/exec"
@@ -62,10 +63,18 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 func setupCopyFiles(copyFiles map[string]string) []string {
 	ret := []string{}
 	for k, v := range copyFiles {
-		s := fmt.Sprintf("--copy-files=%s:%s", k, v)
+		s := fmt.Sprintf("--copy-files=%s:%s", toAbs(k), v)
 		ret = append(ret, s)
 	}
 	return ret
+}
+
+func toAbs(p string) string {
+	if ap, err := filepath.Abs(p); err == nil {
+		return ap
+	}
+	// if Abs reports an error just return the original path 'p'
+	return p
 }
 
 func IsCreated(name string) bool {
