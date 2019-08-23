@@ -29,6 +29,10 @@ func (c *Client) uriFromPath(path string) string {
 	return c.baseURI + path
 }
 
+func (c *Client) publicKeyURI(name string) string {
+	return fmt.Sprintf("%s/api/keys/%s", c.baseURI, name)
+}
+
 func (c *Client) clusterURI(name string) string {
 	return fmt.Sprintf("%s/api/clusters/%s", c.baseURI, name)
 }
@@ -69,6 +73,27 @@ func (c *Client) create(uri string, data interface{}) error {
 	return nil
 }
 
+func (c *Client) get(uri string, data interface{}) error {
+	req, err := http.NewRequest("GET", uri, http.NoBody)
+	if err != nil {
+		return errors.Wrapf(err, "new GET request to %q", uri)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "http request")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.Wrapf(apiError(resp), "GET status %d", resp.StatusCode)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(data); err != nil {
+		return errors.Errorf("could not decode GET response: %v", err)
+	}
+	return nil
+}
+
 func (c *Client) delete(uri string) error {
 	req, err := http.NewRequest("DELETE", uri, http.NoBody)
 	if err != nil {
@@ -84,6 +109,23 @@ func (c *Client) delete(uri string) error {
 		return errors.Wrapf(apiError(resp), "DELETE status %d", resp.StatusCode)
 	}
 	return nil
+}
+
+// CreatePublicKey creates a new public key.
+func (c *Client) CreatePublicKey(def *config.PublicKey) error {
+	return c.create(c.uriFromPath("/api/keys"), def)
+}
+
+// GetPublicKey retrieves a public key.
+func (c *Client) GetPublicKey(name string) (*config.PublicKey, error) {
+	data := config.PublicKey{}
+	err := c.get(c.publicKeyURI(name), &data)
+	return &data, err
+}
+
+// DeletePublicKey deletes a public key.
+func (c *Client) DeletePublicKey(name string) error {
+	return c.delete(c.publicKeyURI(name))
 }
 
 // CreateCluster creates a new cluster.

@@ -29,7 +29,8 @@ type Container struct {
 
 // Cluster is a running cluster.
 type Cluster struct {
-	spec config.Config
+	spec     config.Config
+	keyStore *KeyStore
 }
 
 // New creates a new cluster. It takes as input the description of the cluster
