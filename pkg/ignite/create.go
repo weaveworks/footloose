@@ -1,9 +1,11 @@
 package ignite
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/exec"
@@ -78,11 +80,44 @@ func toAbs(p string) string {
 }
 
 func IsCreated(name string) bool {
-	_, err := exec.ExecuteCommand(execName, "inspect", "vm", name)
+	err := exec.CommandWithLogging(execName, "inspect", "vm", name)
 	if err != nil {
 		return false
 	}
 	return true
+}
+
+func IsStarted(name string) bool {
+	cmd := exec.Command(execName, "inspect", "vm", name)
+	lines, err := exec.CombinedOutputLines(cmd)
+	if err != nil {
+		fmt.Printf("Ignite.IsStarted error:%v\n", err)
+		return false
+	}
+
+	var sb strings.Builder
+	for _, s := range lines {
+		sb.WriteString(s)
+	}
+
+	return isVMStarted([]byte(sb.String()))
+}
+
+type Status struct {
+	running bool
+}
+type VM struct {
+	status Status
+}
+
+func isVMStarted(data []byte) bool {
+	obj := &VM{}
+	err := json.Unmarshal(data, obj)
+	if err != nil {
+		fmt.Printf("Unable to marshal json: %q error:%v\n", data, err)
+		return false
+	}
+	return obj.status.running
 }
 
 // freePort requests a free/open ephemeral port from the kernel

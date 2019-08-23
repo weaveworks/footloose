@@ -25,6 +25,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/robertojrojas/footloose-old/pkg/exec"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -54,6 +55,21 @@ var DefaultCmder = &LocalCmder{}
 // Command is a convience wrapper over DefaultCmder.Command
 func Command(command string, args ...string) Cmd {
 	return DefaultCmder.Command(command, args...)
+}
+
+// CommandWithLogging is a convience wrapper over Command
+// display any errors received by the executed command
+func CommandWithLogging(command string, args ...string) error {
+	cmd := Command(command, args...)
+	output, err := exec.CombinedOutputLines(cmd)
+	if err != nil {
+		// log error output if there was any
+		for _, line := range output {
+			log.Error(line)
+		}
+	}
+	return err
+
 }
 
 // CombinedOutputLines is like os/exec's cmd.CombinedOutput(),

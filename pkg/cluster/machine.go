@@ -70,7 +70,7 @@ func (m *Machine) IsCreated() bool {
 // IsStarted returns if a machine is currently started or not.
 func (m *Machine) IsStarted() bool {
 	if m.IsIgnite() {
-		return ignite.IsCreated(m.name)
+		return ignite.IsStarted(m.name)
 	}
 
 	res, _ := docker.Inspect(m.name, "{{.State.Running}}")
