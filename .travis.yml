@@ -19,6 +19,8 @@ matrix:
       - ./make-image.sh build all
       - go install
       - golangci-lint run ./...
+      - go test -timeout 0 -v .
+      - go test -timeout 0 -v ./pkg/...
       - go test -timeout 0 -v ./tests
 
 deploy:
