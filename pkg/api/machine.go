@@ -16,8 +16,8 @@ func (a *API) MachineURI(c *cluster.Cluster, m *cluster.Machine) string {
 	return fmt.Sprintf("%s/api/clusters/%s/machines/%s", a.BaseURI, c.Name(), m.Hostname())
 }
 
-// CreateMachine creates a machine.
-func (a *API) CreateMachine(w http.ResponseWriter, r *http.Request) {
+// createMachine creates a machine.
+func (a *API) createMachine(w http.ResponseWriter, r *http.Request) {
 	var def config.Machine
 	if err := json.NewDecoder(r.Body).Decode(&def); err != nil {
 		sendError(w, http.StatusBadRequest, errors.Wrap(err, "could not decode body"))
@@ -50,8 +50,8 @@ func (a *API) CreateMachine(w http.ResponseWriter, r *http.Request) {
 	sendCreated(w, a.MachineURI(c, m))
 }
 
-// DeleteMachine deletes a machine.
-func (a *API) DeleteMachine(w http.ResponseWriter, r *http.Request) {
+// deleteMachine deletes a machine.
+func (a *API) deleteMachine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	c, err := a.db.cluster(vars["cluster"])
 	if err != nil {

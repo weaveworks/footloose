@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/footloose/pkg/api"
@@ -46,12 +45,7 @@ func serve(cmd *cobra.Command, args []string) error {
 	}
 
 	api := api.New(baseURI)
-
-	router := mux.NewRouter()
-	router.HandleFunc("/api/clusters", api.CreateCluster).Methods("POST")
-	router.HandleFunc("/api/clusters/{cluster}", api.DeleteCluster).Methods("DELETE")
-	router.HandleFunc("/api/clusters/{cluster}/machines", api.CreateMachine).Methods("POST")
-	router.HandleFunc("/api/clusters/{cluster}/machines/{machine}", api.DeleteMachine).Methods("DELETE")
+	router := api.Router()
 
 	return http.ListenAndServe(opts.listen, router)
 }

@@ -16,8 +16,8 @@ func (a *API) ClusterURI(c *cluster.Cluster) string {
 	return fmt.Sprintf("%s/api/clusters/%s", a.BaseURI, c.Name())
 }
 
-// CreateCluster creates a cluster.
-func (a *API) CreateCluster(w http.ResponseWriter, r *http.Request) {
+// createCluster creates a cluster.
+func (a *API) createCluster(w http.ResponseWriter, r *http.Request) {
 	var def config.Cluster
 	if err := json.NewDecoder(r.Body).Decode(&def); err != nil {
 		sendError(w, http.StatusBadRequest, errors.Wrap(err, "could not decode body"))
@@ -47,8 +47,8 @@ func (a *API) CreateCluster(w http.ResponseWriter, r *http.Request) {
 	sendCreated(w, a.ClusterURI((cluster)))
 }
 
-// DeleteCluster deletes a cluster.
-func (a *API) DeleteCluster(w http.ResponseWriter, r *http.Request) {
+// deleteCluster deletes a cluster.
+func (a *API) deleteCluster(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	c, err := a.db.cluster(vars["cluster"])
 	if err != nil {
