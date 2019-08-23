@@ -78,7 +78,7 @@ func toAbs(p string) string {
 }
 
 func IsCreated(name string) bool {
-	_, err := exec.ExecuteCommand(execName, "logs", name)
+	_, err := exec.ExecuteCommand(execName, "inspect", "vm", name)
 	if err != nil {
 		return false
 	}
