@@ -452,6 +452,10 @@ func (c *Cluster) startMachine(machine *Machine, i int) error {
 	}
 	log.Infof("Starting machine: %s ...", name)
 
+	if machine.IsIgnite() {
+		return ignite.Start(name)
+	}
+
 	// Run command while sigs.k8s.io/kind/pkg/container/docker doesn't
 	// have a start command
 	cmd := exec.Command(
