@@ -2,9 +2,9 @@ package ignite
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/exec"
 )
 
@@ -47,7 +47,7 @@ func PopulateMachineDetails(name string) (*VM, error) {
 	cmd := exec.Command(execName, "inspect", "vm", name)
 	lines, err := exec.CombinedOutputLines(cmd)
 	if err != nil {
-		fmt.Printf("Ignite.IsStarted error:%v\n", err)
+		log.Errorf("Ignite.IsStarted error:%v\n", err)
 		return nil, err
 	}
 
@@ -62,7 +62,7 @@ func toVM(data []byte) (*VM, error) {
 	obj := &VM{}
 	err := json.Unmarshal(data, obj)
 	if err != nil {
-		fmt.Printf("Unable to marshal json: %q error:%v\n", data, err)
+		log.Errorf("Unable to marshal json: %q error:%v\n", data, err)
 		return nil, err
 	}
 	return obj, nil
