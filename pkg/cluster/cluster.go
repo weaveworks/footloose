@@ -302,6 +302,7 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 
 	if machine.IsIgnite() {
+		log.Infof("Deleting machine: %s ...", name)
 		return ignite.Remove(machine.name)
 	}
 
