@@ -25,7 +25,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/robertojrojas/footloose-old/pkg/exec"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -61,7 +60,7 @@ func Command(command string, args ...string) Cmd {
 // display any errors received by the executed command
 func CommandWithLogging(command string, args ...string) error {
 	cmd := Command(command, args...)
-	output, err := exec.CombinedOutputLines(cmd)
+	output, err := CombinedOutputLines(cmd)
 	if err != nil {
 		// log error output if there was any
 		for _, line := range output {

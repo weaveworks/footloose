@@ -103,13 +103,6 @@ func IsStarted(name string) bool {
 	return isVMStarted([]byte(sb.String()))
 }
 
-type Status struct {
-	running bool
-}
-type VM struct {
-	status Status
-}
-
 func isVMStarted(data []byte) bool {
 	obj := &VM{}
 	err := json.Unmarshal(data, obj)
@@ -117,7 +110,7 @@ func isVMStarted(data []byte) bool {
 		fmt.Printf("Unable to marshal json: %q error:%v\n", data, err)
 		return false
 	}
-	return obj.status.running
+	return obj.Status.Running
 }
 
 // freePort requests a free/open ephemeral port from the kernel

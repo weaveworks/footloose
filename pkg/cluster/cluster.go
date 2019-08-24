@@ -377,6 +377,24 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 		if !m.IsCreated() {
 			continue
 		}
+		if m.IsIgnite() {
+			vm, err := ignite.PopulateMachineDetails(m.name)
+			if err != nil {
+				return machines, err
+			}
+
+			// Set Ports
+			ports := make([]config.PortMapping, 0)
+			for _, port := range vm.Spec.Network.Ports {
+				p := config.PortMapping{}
+				p.HostPort = port.HostPort
+				p.ContainerPort = port.VMPort
+				ports = append(ports, p)
+			}
+			m.spec.PortMappings = ports
+			m.ip = vm.Status.IpAddresses[0]
+		}
+
 		inspect, err := c.gatherMachineDetails(m.name)
 		if err != nil {
 			return machines, err
