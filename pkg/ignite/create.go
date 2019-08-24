@@ -1,7 +1,6 @@
 package ignite
 
 import (
-	"encoding/json"
 	"fmt"
 	"net"
 	"path/filepath"
@@ -101,17 +100,13 @@ func IsStarted(name string) bool {
 		sb.WriteString(s)
 	}
 
-	return isVMStarted([]byte(sb.String()))
-}
-
-func isVMStarted(data []byte) bool {
-	obj := &VM{}
-	err := json.Unmarshal(data, obj)
+	data := []byte(sb.String())
+	vm, err := toVM(data)
 	if err != nil {
-		log.Errorf("Unable to marshal json: %q error:%v\n", data, err)
 		return false
 	}
-	return obj.Status.Running
+
+	return vm.Status.Running
 }
 
 // freePort requests a free/open ephemeral port from the kernel

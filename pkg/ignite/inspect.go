@@ -62,7 +62,7 @@ func toVM(data []byte) (*VM, error) {
 	obj := &VM{}
 	err := json.Unmarshal(data, obj)
 	if err != nil {
-		log.Errorf("Unable to marshal json: %q error:%v\n", data, err)
+		log.Errorf("Ignite.toVM error:%v\n", err)
 		return nil, err
 	}
 	return obj, nil
