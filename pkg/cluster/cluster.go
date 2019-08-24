@@ -393,6 +393,7 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 			}
 			m.spec.PortMappings = ports
 			m.ip = vm.Status.IpAddresses[0]
+			continue
 		}
 
 		inspect, err := c.gatherMachineDetails(m.name)
