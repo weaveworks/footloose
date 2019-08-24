@@ -392,7 +392,10 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 				ports = append(ports, p)
 			}
 			m.spec.PortMappings = ports
-			m.ip = vm.Status.IpAddresses[0]
+			if vm.Status.IpAddresses != nil && len(vm.Status.IpAddresses) > 0 {
+				m.ip = vm.Status.IpAddresses[0]
+			}
+
 			continue
 		}
 
