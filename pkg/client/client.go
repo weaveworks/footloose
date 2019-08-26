@@ -48,23 +48,23 @@ func apiError(resp *http.Response) error {
 func (c *Client) create(uri string, data interface{}) error {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return errors.Wrap(err, "post")
+		return errors.Wrap(err, "json marshal")
 	}
 
 	req, err := http.NewRequest("POST", uri, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return errors.Wrapf(err, "new request to %q", uri)
+		return errors.Wrapf(err, "new POST request to %q", uri)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return errors.Wrap(err, "post")
+		return errors.Wrap(err, "http request")
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		return errors.Wrap(apiError(resp), "post")
+		return errors.Wrapf(apiError(resp), "POST status %d", resp.StatusCode)
 	}
 	return nil
 }
@@ -72,16 +72,16 @@ func (c *Client) create(uri string, data interface{}) error {
 func (c *Client) delete(uri string) error {
 	req, err := http.NewRequest("DELETE", uri, http.NoBody)
 	if err != nil {
-		return errors.Wrap(err, "delete")
+		return errors.Wrapf(err, "new DELETE request to %q", uri)
 	}
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return errors.Wrap(err, "delete")
+		return errors.Wrap(err, "http request")
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.Wrap(apiError(resp), "delete")
+		return errors.Wrapf(apiError(resp), "DELETE status %d", resp.StatusCode)
 	}
 	return nil
 }
