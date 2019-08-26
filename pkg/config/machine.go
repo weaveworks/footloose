@@ -94,7 +94,7 @@ type Ignite struct {
 	// Memory specifies the amount of RAM the VM should have. Default: 1GB
 	Memory string `json:"memory,omitempty"`
 	// Disk specifies the amount of disk space the VM should have. Default: 4GB
-	Disk string `json:"disk,omitempty"`
+	Disk string `json:"diskSize,omitempty"`
 	// Kernel specifies an OCI image to use for the kernel overlay
 	Kernel string `json:"kernel,omitempty"`
 	// Files to copy to the VM
