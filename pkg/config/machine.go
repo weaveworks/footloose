@@ -75,29 +75,29 @@ func (m *Machine) IgniteConfig() Ignite {
 	if i.CPUs == 0 {
 		i.CPUs = 2
 	}
-	if i.Memory == "" {
+	if len(i.Memory) == 0 {
 		i.Memory = "1GB"
 	}
-	if i.Disk == "" {
+	if len(i.Disk) == 0 {
 		i.Disk = "4GB"
 	}
-	if i.Kernel == "" {
+	if len(i.Kernel) == 0 {
 		i.Kernel = "weaveworks/ignite-kernel:4.19.47"
 	}
 	return i
 }
 
-// Ignite holds ignite-specific config
+// Ignite holds the ignite-specific configuration
 type Ignite struct {
 	// CPUs specify the number of vCPUs to use. Default: 2
 	CPUs uint64 `json:"cpus,omitempty"`
 	// Memory specifies the amount of RAM the VM should have. Default: 1GB
 	Memory string `json:"memory,omitempty"`
-	// Disk specifies the amount of disk the VM should have. Default: 4GB
+	// Disk specifies the amount of disk space the VM should have. Default: 4GB
 	Disk string `json:"disk,omitempty"`
 	// Kernel specifies an OCI image to use for the kernel overlay
 	Kernel string `json:"kernel,omitempty"`
-	// Files to copy
+	// Files to copy to the VM
 	CopyFiles map[string]string `json:"copyFiles,omitempty"`
 }
 

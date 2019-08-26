@@ -300,15 +300,14 @@ func (c *Cluster) Create() error {
 
 func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
+	if !machine.IsCreated() {
+		log.Infof("Machine %s hasn't been created...", name)
+		return nil
+	}
 
 	if machine.IsIgnite() {
 		log.Infof("Deleting machine: %s ...", name)
 		return ignite.Remove(machine.name)
-	}
-
-	if !machine.IsCreated() {
-		log.Infof("Machine %s hasn't been created...", name)
-		return nil
 	}
 
 	if machine.IsStarted() {
