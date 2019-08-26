@@ -4,7 +4,7 @@ import (
 	"github.com/weaveworks/footloose/pkg/exec"
 )
 
-// Stop stops a vm.
-func Stop(vmname string) error {
-	return exec.CommandWithLogging(execName, "stop", vmname)
+// Stop stops an Ignite VM
+func Stop(name string) error {
+	return exec.CommandWithLogging(execName, "stop", name)
 }

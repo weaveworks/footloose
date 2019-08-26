@@ -4,25 +4,21 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
-	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/exec"
 )
 
 const (
-	IgniteName = "ignite"
+	BackendName = "ignite"
 )
 
 // This offset is incremented for each port so we avoid
-// duplicate port bindings (and hopefully port collisions).
+// duplicate port bindings (and hopefully port collisions)
 var portOffset uint16
 
-// Create creates a container with "docker create", with some error handling
-// it will return the ID of the created container if any, even on error
+// Create creates an Ignite VM using "ignite run", it doesn't return a container ID
 func Create(name string, spec *config.Machine, pubKeyPath string) (id string, err error) {
-
 	runArgs := []string{
 		"run",
 		spec.Image,
@@ -34,12 +30,10 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 		fmt.Sprintf("--ssh=%s", pubKeyPath),
 	}
 
-	copyFiles := spec.IgniteConfig().CopyFiles
-	if copyFiles == nil {
-		copyFiles = make(map[string]string)
-	}
-	for _, v := range setupCopyFiles(copyFiles) {
-		runArgs = append(runArgs, v)
+	if copyFiles := spec.IgniteConfig().CopyFiles; copyFiles != nil {
+		for _, v := range setupCopyFiles(copyFiles) {
+			runArgs = append(runArgs, v)
+		}
 	}
 
 	for _, mapping := range spec.PortMappings {
@@ -57,19 +51,20 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 		runArgs = append(runArgs, fmt.Sprintf("--ports=%d:%d", int(mapping.HostPort), mapping.ContainerPort))
 	}
 
-	// increment portOffset per-machine
+	// Increment portOffset per-machine
 	portOffset++
 
 	_, err = exec.ExecuteCommand(execName, runArgs...)
 	return "", err
 }
 
+// setupCopyFiles formats the files to copy over to Ignite flags
 func setupCopyFiles(copyFiles map[string]string) []string {
-	ret := []string{}
+	ret := make([]string, 0, len(copyFiles))
 	for k, v := range copyFiles {
-		s := fmt.Sprintf("--copy-files=%s:%s", toAbs(k), v)
-		ret = append(ret, s)
+		ret = append(ret, fmt.Sprintf("--copy-files=%s:%s", toAbs(k), v))
 	}
+
 	return ret
 }
 
@@ -77,33 +72,19 @@ func toAbs(p string) string {
 	if ap, err := filepath.Abs(p); err == nil {
 		return ap
 	}
-	// if Abs reports an error just return the original path 'p'
+
+	// If Abs reports an error, just return the given path as-is
 	return p
 }
 
+// IsCreated checks if the VM with the given name is created
 func IsCreated(name string) bool {
-	err := exec.Command(execName, "inspect", "vm", name).Run()
-	if err != nil {
-		return false
-	}
-	return true
+	return exec.Command(execName, "inspect", "vm", name).Run() == nil
 }
 
+// IsStarted checks if the VM with the given name is running
 func IsStarted(name string) bool {
-	cmd := exec.Command(execName, "inspect", "vm", name)
-	lines, err := exec.CombinedOutputLines(cmd)
-	if err != nil {
-		log.Errorf("Ignite.IsStarted error:%v\n", err)
-		return false
-	}
-
-	var sb strings.Builder
-	for _, s := range lines {
-		sb.WriteString(s)
-	}
-
-	data := []byte(sb.String())
-	vm, err := toVM(data)
+	vm, err := PopulateMachineDetails(name)
 	if err != nil {
 		return false
 	}

@@ -43,11 +43,12 @@ type VM struct {
 	Status   Status
 }
 
+// PopulateMachineDetails returns the details of the VM identified by the given name
 func PopulateMachineDetails(name string) (*VM, error) {
 	cmd := exec.Command(execName, "inspect", "vm", name)
 	lines, err := exec.CombinedOutputLines(cmd)
 	if err != nil {
-		log.Errorf("Ignite.IsStarted error:%v\n", err)
+		log.Errorf("Ignite.IsStarted error: %v\n", err)
 		return nil, err
 	}
 
@@ -55,15 +56,17 @@ func PopulateMachineDetails(name string) (*VM, error) {
 	for _, s := range lines {
 		sb.WriteString(s)
 	}
+
 	return toVM([]byte(sb.String()))
 }
 
+// toVM unmarshals the given data to a VM object
 func toVM(data []byte) (*VM, error) {
 	obj := &VM{}
-	err := json.Unmarshal(data, obj)
-	if err != nil {
-		log.Errorf("Ignite.toVM error:%v\n", err)
+	if err := json.Unmarshal(data, obj); err != nil {
+		log.Errorf("Ignite.toVM error: %v\n", err)
 		return nil, err
 	}
+
 	return obj, nil
 }

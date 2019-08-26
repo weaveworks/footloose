@@ -109,10 +109,10 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 }
 
 func (m *Machine) IsIgnite() (b bool) {
-	b = m.spec.Backend == ignite.IgniteName
+	b = m.spec.Backend == ignite.BackendName
 
 	if b && syscall.Getuid() != 0 {
-		log.Fatalf("Footloose needs to run as root to use the %q backend", ignite.IgniteName)
+		log.Fatalf("Footloose needs to run as root to use the %q backend", ignite.BackendName)
 	}
 
 	return
