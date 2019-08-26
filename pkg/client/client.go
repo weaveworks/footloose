@@ -52,6 +52,9 @@ func (c *Client) create(uri string, data interface{}) error {
 	}
 
 	req, err := http.NewRequest("POST", uri, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return errors.Wrapf(err, "new request to %q", uri)
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
