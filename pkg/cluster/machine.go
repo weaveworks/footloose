@@ -108,11 +108,19 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 	return m.ports[containerPort], nil
 }
 
+// Only check for Ignite prerequisites once
+var igniteChecked bool
+
 func (m *Machine) IsIgnite() (b bool) {
 	b = m.spec.Backend == ignite.BackendName
 
-	if b && syscall.Getuid() != 0 {
-		log.Fatalf("Footloose needs to run as root to use the %q backend", ignite.BackendName)
+	if !igniteChecked && b {
+		if syscall.Getuid() != 0 {
+			log.Fatalf("Footloose needs to run as root to use the %q backend", ignite.BackendName)
+		}
+
+		ignite.CheckVersion()
+		igniteChecked = true
 	}
 
 	return
