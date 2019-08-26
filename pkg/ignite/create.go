@@ -50,11 +50,13 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 		} else {
 			// If defined, apply an offset so all VMs won't use the same port
 			mapping.HostPort += portOffset
-			portOffset++
 		}
 
 		runArgs = append(runArgs, fmt.Sprintf("--ports=%d:%d", int(mapping.HostPort), mapping.ContainerPort))
 	}
+
+	// increment portOffset per-machine
+	portOffset++
 
 	_, err = exec.ExecuteCommand(execName, runArgs...)
 	return "", err
