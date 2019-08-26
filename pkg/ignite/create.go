@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/exec"
 )
@@ -80,11 +82,33 @@ func toAbs(p string) string {
 }
 
 func IsCreated(name string) bool {
-	_, err := exec.ExecuteCommand(execName, "logs", name)
+	err := exec.Command(execName, "inspect", "vm", name).Run()
 	if err != nil {
 		return false
 	}
 	return true
+}
+
+func IsStarted(name string) bool {
+	cmd := exec.Command(execName, "inspect", "vm", name)
+	lines, err := exec.CombinedOutputLines(cmd)
+	if err != nil {
+		log.Errorf("Ignite.IsStarted error:%v\n", err)
+		return false
+	}
+
+	var sb strings.Builder
+	for _, s := range lines {
+		sb.WriteString(s)
+	}
+
+	data := []byte(sb.String())
+	vm, err := toVM(data)
+	if err != nil {
+		return false
+	}
+
+	return vm.Status.Running
 }
 
 // freePort requests a free/open ephemeral port from the kernel

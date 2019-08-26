@@ -301,16 +301,14 @@ func (c *Cluster) Create() error {
 func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 
+	if machine.IsIgnite() {
+		log.Infof("Deleting machine: %s ...", name)
+		return ignite.Remove(machine.name)
+	}
+
 	if !machine.IsCreated() {
 		log.Infof("Machine %s hasn't been created...", name)
 		return nil
-	}
-
-	if machine.IsIgnite() {
-		if machine.IsStarted() {
-			ignite.Stop(machine.name)
-		}
-		return ignite.Remove(machine.name)
 	}
 
 	if machine.IsStarted() {
@@ -380,6 +378,28 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 		if !m.IsCreated() {
 			continue
 		}
+		if m.IsIgnite() {
+			vm, err := ignite.PopulateMachineDetails(m.name)
+			if err != nil {
+				return machines, err
+			}
+
+			// Set Ports
+			ports := make([]config.PortMapping, 0)
+			for _, port := range vm.Spec.Network.Ports {
+				p := config.PortMapping{}
+				p.HostPort = port.HostPort
+				p.ContainerPort = port.VMPort
+				ports = append(ports, p)
+			}
+			m.spec.PortMappings = ports
+			if vm.Status.IpAddresses != nil && len(vm.Status.IpAddresses) > 0 {
+				m.ip = vm.Status.IpAddresses[0]
+			}
+
+			continue
+		}
+
 		inspect, err := c.gatherMachineDetails(m.name)
 		if err != nil {
 			return machines, err

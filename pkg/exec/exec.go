@@ -56,6 +56,21 @@ func Command(command string, args ...string) Cmd {
 	return DefaultCmder.Command(command, args...)
 }
 
+// CommandWithLogging is a convience wrapper over Command
+// display any errors received by the executed command
+func CommandWithLogging(command string, args ...string) error {
+	cmd := Command(command, args...)
+	output, err := CombinedOutputLines(cmd)
+	if err != nil {
+		// log error output if there was any
+		for _, line := range output {
+			log.Error(line)
+		}
+	}
+	return err
+
+}
+
 // CombinedOutputLines is like os/exec's cmd.CombinedOutput(),
 // but over our Cmd interface, and instead of returning the byte buffer of
 // stderr + stdout, it scans these for lines and returns a slice of output lines
