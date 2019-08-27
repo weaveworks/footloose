@@ -12,7 +12,13 @@ footloose: bin/footloose
 bin/footloose:
 	CGO_ENABLED=0 go build -mod=vendor -o bin/footloose .
 
-.PHONY: bin/footloose
+D := $(shell go env GOPATH)/bin
+install: bin/footloose
+	mkdir -p $(D)
+	cp $^ $(D)
 
 vendor:
 	go mod vendor
+
+.PHONY: bin/footloose install binary footloose vendor
+
