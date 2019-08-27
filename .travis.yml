@@ -14,6 +14,7 @@ matrix:
   include:
     - script:
       - ./make-image.sh build all
+      - go install
       - go test -timeout 0 -v ./tests
 
 deploy:
