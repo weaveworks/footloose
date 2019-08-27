@@ -25,7 +25,7 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 		fmt.Sprintf("--name=%s", name),
 		fmt.Sprintf("--cpus=%d", spec.IgniteConfig().CPUs),
 		fmt.Sprintf("--memory=%s", spec.IgniteConfig().Memory),
-		fmt.Sprintf("--size=%s", spec.IgniteConfig().Disk),
+		fmt.Sprintf("--size=%s", spec.IgniteConfig().DiskSize),
 		fmt.Sprintf("--kernel-image=%s", spec.IgniteConfig().Kernel),
 		fmt.Sprintf("--ssh=%s", pubKeyPath),
 	}
