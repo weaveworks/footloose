@@ -1,6 +1,7 @@
 module github.com/weaveworks/footloose
 
 require (
+	github.com/blang/semver v3.5.1+incompatible
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.3.3 // indirect
