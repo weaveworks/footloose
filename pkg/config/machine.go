@@ -78,8 +78,8 @@ func (m *Machine) IgniteConfig() Ignite {
 	if len(i.Memory) == 0 {
 		i.Memory = "1GB"
 	}
-	if len(i.Disk) == 0 {
-		i.Disk = "4GB"
+	if len(i.DiskSize) == 0 {
+		i.DiskSize = "4GB"
 	}
 	if len(i.Kernel) == 0 {
 		i.Kernel = "weaveworks/ignite-kernel:4.19.47"
@@ -93,8 +93,8 @@ type Ignite struct {
 	CPUs uint64 `json:"cpus,omitempty"`
 	// Memory specifies the amount of RAM the VM should have. Default: 1GB
 	Memory string `json:"memory,omitempty"`
-	// Disk specifies the amount of disk space the VM should have. Default: 4GB
-	Disk string `json:"disk,omitempty"`
+	// DiskSize specifies the amount of disk space the VM should have. Default: 4GB
+	DiskSize string `json:"diskSize,omitempty"`
 	// Kernel specifies an OCI image to use for the kernel overlay
 	Kernel string `json:"kernel,omitempty"`
 	// Files to copy to the VM
