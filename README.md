@@ -170,7 +170,7 @@ machines:
   ignite:
     cpus: 2
     memory: 1GB
-    disk: 4GB
+    diskSize: 4GB
     kernel: weaveworks/ignite-ubuntu:4.19.47
 ```
 
