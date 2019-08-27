@@ -19,7 +19,7 @@ func TestMatchFilter(t *testing.T) {
 	assert.Equal(t, false, filter.matched)
 
 	filter.Write([]byte(refused))
-	assert.Equal(t, true, filter.matched)
+	assert.Equal(t, false, filter.matched)
 }
 
 func TestNewClusterWithHostPort(t *testing.T) {
