@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/footloose/pkg/api"
@@ -13,32 +14,40 @@ import (
 
 // Client is a object able to talk a remote footloose API server.
 type Client struct {
-	baseURI string
+	baseURI *url.URL
 	client  *http.Client
 }
 
 // New creates a new Client.
 func New(baseURI string) *Client {
+	u, err := url.Parse(baseURI)
+	if err != nil {
+		panic(err)
+	}
 	return &Client{
-		baseURI: baseURI,
+		baseURI: u,
 		client:  &http.Client{},
 	}
 }
 
 func (c *Client) uriFromPath(path string) string {
-	return c.baseURI + path
+	u, err := url.Parse(path)
+	if err != nil {
+		panic(err)
+	}
+	return c.baseURI.ResolveReference(u).String()
 }
 
 func (c *Client) publicKeyURI(name string) string {
-	return fmt.Sprintf("%s/api/keys/%s", c.baseURI, name)
+	return c.uriFromPath(fmt.Sprintf("/api/keys/%s", name))
 }
 
 func (c *Client) clusterURI(name string) string {
-	return fmt.Sprintf("%s/api/clusters/%s", c.baseURI, name)
+	return c.uriFromPath(fmt.Sprintf("/api/clusters/%s", name))
 }
 
 func (c *Client) machineURI(clusterName, name string) string {
-	return fmt.Sprintf("%s/api/clusters/%s/machines/%s", c.baseURI, clusterName, name)
+	return c.uriFromPath(fmt.Sprintf("/api/clusters/%s/machines/%s", clusterName, name))
 }
 
 func apiError(resp *http.Response) error {

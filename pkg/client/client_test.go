@@ -2,6 +2,7 @@ package client
 
 import (
 	"net/http/httptest"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,10 +27,12 @@ func newEnv() *env {
 	server.Config.Handler = api.Router()
 	server.Start()
 
+	u, _ := url.Parse(server.URL)
+
 	return &env{
 		server: server,
 		client: Client{
-			baseURI: server.URL,
+			baseURI: u,
 			client:  server.Client(),
 		},
 	}
