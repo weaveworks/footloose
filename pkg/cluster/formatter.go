@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"text/tabwriter"
 
@@ -14,8 +13,8 @@ import (
 // Formatter formats a slice of machines and outputs the result
 // in a given format.
 type Formatter interface {
-	Format([]*Machine) error
-	FormatSingle(*Machine) error
+	Format(io.Writer, []*Machine) error
+	FormatSingle(io.Writer, *Machine) error
 }
 
 // JSONFormatter formats a slice of machines into a JSON and
@@ -52,7 +51,7 @@ type status struct {
 }
 
 // Format will output to stdout in JSON format.
-func (JSONFormatter) Format(machines []*Machine) error {
+func (JSONFormatter) Format(w io.Writer, machines []*Machine) error {
 	var statuses []status
 	for _, m := range machines {
 		s := status{}
@@ -97,13 +96,13 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(ms))
+	w.Write(ms)
 	return nil
 }
 
 // FormatSingle is a json formatter for a single machine.
-func (js JSONFormatter) FormatSingle(m *Machine) error {
-	return js.Format([]*Machine{m})
+func (js JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
+	return js.Format(w, []*Machine{m})
 }
 
 type tableMachine struct {
@@ -122,9 +121,9 @@ func writeColumns(w io.Writer, cols []string) {
 }
 
 // Format will output to stdout in table format.
-func (TableFormatter) Format(machines []*Machine) error {
+func (TableFormatter) Format(w io.Writer, machines []*Machine) error {
 	const padding = 3
-	table := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
+	table := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
 	writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
 	for _, m := range machines {
 		state := NotCreated
@@ -163,9 +162,9 @@ func (TableFormatter) Format(machines []*Machine) error {
 }
 
 // FormatSingle is a table formatter for a single machine.
-func (TableFormatter) FormatSingle(machine *Machine) error {
+func (TableFormatter) FormatSingle(w io.Writer, machine *Machine) error {
 	jsonFormatter := JSONFormatter{}
-	return jsonFormatter.FormatSingle(machine)
+	return jsonFormatter.FormatSingle(w, machine)
 }
 
 func GetFormatter(output string) (Formatter, error) {

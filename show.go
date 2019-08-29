@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/footloose/pkg/cluster"
 )
@@ -40,5 +42,5 @@ func show(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	return formatter.Format(machines)
+	return formatter.Format(os.Stdout, machines)
 }
