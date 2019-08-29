@@ -27,6 +27,7 @@ func (a *API) createPublicKey(w http.ResponseWriter, r *http.Request) {
 
 	if err := a.keyStore.Store(def.Name, def.Key); err != nil {
 		sendError(w, http.StatusBadRequest, err)
+		return
 	}
 
 	sendCreated(w, a.keyURI(def.Name))
