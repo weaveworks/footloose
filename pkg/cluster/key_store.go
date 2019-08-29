@@ -41,11 +41,11 @@ func (s *KeyStore) keyExists(name string) bool {
 // Store adds the key to the store.
 func (s *KeyStore) Store(name, key string) error {
 	if s.keyExists(name) {
-		return errors.Errorf("key '%s' already exists", name)
+		return errors.Errorf("key store: store: key '%s' already exists", name)
 	}
 
 	if err := ioutil.WriteFile(s.keyPath(name), []byte(key), 0644); err != nil {
-		return errors.Wrap(err, "store")
+		return errors.Wrap(err, "key store: write")
 	}
 
 	return nil
@@ -54,7 +54,7 @@ func (s *KeyStore) Store(name, key string) error {
 // Get retrieves a key from the store.
 func (s *KeyStore) Get(name string) ([]byte, error) {
 	if !s.keyExists(name) {
-		return nil, errors.Errorf("unknown key '%s'", name)
+		return nil, errors.Errorf("key store: get: unknown key '%s'", name)
 	}
 	return ioutil.ReadFile(s.keyPath(name))
 }
@@ -62,10 +62,10 @@ func (s *KeyStore) Get(name string) ([]byte, error) {
 // Remove removes a key from the store.
 func (s *KeyStore) Remove(name string) error {
 	if !s.keyExists(name) {
-		return errors.Errorf("unknown key '%s'", name)
+		return errors.Errorf("key store: remove: unknown key '%s'", name)
 	}
 	if err := os.Remove(s.keyPath(name)); err != nil {
-		return errors.Wrap(err, "remove")
+		return errors.Wrap(err, "key store: remove")
 	}
 	return nil
 }
