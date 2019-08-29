@@ -39,7 +39,8 @@ const (
 	Running = "Running"
 )
 
-type status struct {
+// MachineStatus is the runtime status of a Machine.
+type MachineStatus struct {
 	Container       string            `json:"container"`
 	State           string            `json:"state"`
 	Spec            *config.Machine   `json:"spec,omitempty"`
@@ -52,43 +53,13 @@ type status struct {
 
 // Format will output to stdout in JSON format.
 func (JSONFormatter) Format(w io.Writer, machines []*Machine) error {
-	var statuses []status
+	var statuses []MachineStatus
 	for _, m := range machines {
-		s := status{}
-		s.Hostname = m.Hostname()
-		s.Container = m.ContainerName()
-		s.Image = m.spec.Image
-		s.Command = m.spec.Cmd
-		s.Spec = m.spec
-		state := NotCreated
-		if m.IsCreated() {
-			state = Stopped
-			if m.IsStarted() {
-				state = Running
-			}
-		}
-		s.State = state
-		var ports []port
-		for k, v := range m.ports {
-			p := port{
-				Host:  v,
-				Guest: k,
-			}
-			ports = append(ports, p)
-		}
-		if len(ports) < 1 {
-			for _, p := range m.spec.PortMappings {
-				ports = append(ports, port{Host: int(p.ContainerPort), Guest: 0})
-			}
-		}
-		s.Ports = ports
-		s.RuntimeNetworks = m.runtimeNetworks
-
-		statuses = append(statuses, s)
+		statuses = append(statuses, *m.Status())
 	}
 
 	m := struct {
-		Machines []status `json:"machines"`
+		Machines []MachineStatus `json:"machines"`
 	}{
 		Machines: statuses,
 	}
