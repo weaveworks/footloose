@@ -92,6 +92,10 @@ func TestCreateDeleteMachine(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+	status, err := env.client.GetMachine("testcluster", "testmachine")
+	assert.NoError(t, err)
+	assert.Equal(t, "testmachine", status.Spec.Name)
+
 	err = env.client.DeleteMachine("testcluster", "testmachine")
 	assert.NoError(t, err)
 

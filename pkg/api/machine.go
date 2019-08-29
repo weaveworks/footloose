@@ -50,6 +50,26 @@ func (a *API) createMachine(w http.ResponseWriter, r *http.Request) {
 	sendCreated(w, a.MachineURI(c, m))
 }
 
+// getMachine returns a machine object
+func (a *API) getMachine(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	m, err := a.db.machine(vars["cluster"], vars["machine"])
+	if err != nil {
+		sendError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	formatter, err := cluster.GetFormatter("json")
+	if err != nil {
+		sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := formatter.FormatSingle(w, m); err != nil {
+		sendError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
+
 // deleteMachine deletes a machine.
 func (a *API) deleteMachine(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

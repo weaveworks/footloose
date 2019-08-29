@@ -73,7 +73,12 @@ func (JSONFormatter) Format(w io.Writer, machines []*Machine) error {
 
 // FormatSingle is a json formatter for a single machine.
 func (js JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
-	return js.Format(w, []*Machine{m})
+	status, err := json.MarshalIndent(m.Status(), "", "  ")
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(status)
+	return err
 }
 
 type tableMachine struct {

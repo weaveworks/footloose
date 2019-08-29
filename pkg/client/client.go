@@ -9,6 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/footloose/pkg/api"
+	"github.com/weaveworks/footloose/pkg/cluster"
 	"github.com/weaveworks/footloose/pkg/config"
 )
 
@@ -150,6 +151,16 @@ func (c *Client) DeleteCluster(name string) error {
 // CreateMachine creates a new machine.
 func (c *Client) CreateMachine(cluster string, def *config.Machine) error {
 	return c.create(c.uriFromPath(fmt.Sprintf("/api/clusters/%s/machines", cluster)), def)
+}
+
+// GetMachine retrieves the machine details.
+//
+// XXX: This API isn't stable and will change in the future as we refine what
+// the machine spec and status objects should be.
+func (c *Client) GetMachine(clusterName, machine string) (*cluster.MachineStatus, error) {
+	status := cluster.MachineStatus{}
+	err := c.get(c.machineURI(clusterName, machine), &status)
+	return &status, err
 }
 
 // DeleteMachine deletes a machine.

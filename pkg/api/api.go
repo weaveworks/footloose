@@ -31,6 +31,7 @@ func (a *API) Router() *mux.Router {
 	router.HandleFunc("/api/clusters", a.createCluster).Methods("POST")
 	router.HandleFunc("/api/clusters/{cluster}", a.deleteCluster).Methods("DELETE")
 	router.HandleFunc("/api/clusters/{cluster}/machines", a.createMachine).Methods("POST")
+	router.HandleFunc("/api/clusters/{cluster}/machines/{machine}", a.getMachine).Methods("GET")
 	router.HandleFunc("/api/clusters/{cluster}/machines/{machine}", a.deleteMachine).Methods("DELETE")
 	return router
 }
