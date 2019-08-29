@@ -65,6 +65,10 @@ type Machine struct {
 	PortMappings []PortMapping `json:"portMappings,omitempty"`
 	// Cmd is a cmd which will be run in the container.
 	Cmd string `json:"cmd,omitempty"`
+	// PublicKey is the name of the public key to upload onto the machine for root
+	// SSH access.
+	PublicKey string `json:"publicKey,omitempty"`
+
 	// Backend specifies the runtime backend for this machine
 	Backend string `json:"backend,omitempty"`
 	// Ignite specifies ignite-specific options

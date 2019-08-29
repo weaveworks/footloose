@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/docker"
@@ -40,7 +41,8 @@ func New(conf config.Config) (*Cluster, error) {
 		return nil, err
 	}
 	return &Cluster{
-		spec: conf,
+		spec:     conf,
+		keyStore: NewKeyStore("."),
 	}, nil
 }
 
@@ -148,6 +150,9 @@ func (c *Cluster) forSpecificMachines(do func(*Machine, int) error, machineNames
 }
 
 func (c *Cluster) ensureSSHKey() error {
+	if c.spec.Cluster.PrivateKey == "" {
+		return nil
+	}
 	path, _ := homedir.Expand(c.spec.Cluster.PrivateKey)
 	if _, err := os.Stat(path); err == nil {
 		return nil
@@ -172,8 +177,26 @@ mkdir $sshdir; chmod 700 $sshdir
 touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 `
 
-func (c *Cluster) publicKey() ([]byte, error) {
-	path, _ := homedir.Expand(c.spec.Cluster.PrivateKey)
+func (c *Cluster) publicKey(machine *Machine) ([]byte, error) {
+	// Prefer the machine public key over the cluster-wide key.
+	if machine.spec.PublicKey != "" {
+		data, err := c.keyStore.Get(machine.spec.PublicKey)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, byte('\n'))
+		return data, err
+	}
+
+	// Cluster global key
+	if c.spec.Cluster.PrivateKey == "" {
+		return nil, errors.New("no SSH key provided")
+	}
+
+	path, err := homedir.Expand(c.spec.Cluster.PrivateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "public key expand")
+	}
 	return ioutil.ReadFile(path + ".pub")
 }
 
@@ -181,7 +204,7 @@ func (c *Cluster) publicKey() ([]byte, error) {
 func (c *Cluster) CreateMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 
-	publicKey, err := c.publicKey()
+	publicKey, err := c.publicKey(machine)
 	if err != nil {
 		return err
 	}
