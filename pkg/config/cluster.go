@@ -53,11 +53,6 @@ func (conf MachineReplicas) validate() error {
 	return conf.Spec.validate()
 }
 
-// validate checks basic rules for Cluster's fields
-func (conf Cluster) validate() error {
-	return fmt.Errorf("not yet implemented")
-}
-
 // Validate checks basic rules for Config's fields
 func (conf Config) Validate() error {
 	valid := true
@@ -68,7 +63,7 @@ func (conf Config) Validate() error {
 			log.Fatalf(err.Error())
 		}
 	}
-	if valid == false {
+	if !valid {
 		return fmt.Errorf("Configuration file non valid")
 	}
 	return nil

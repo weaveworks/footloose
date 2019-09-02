@@ -22,7 +22,7 @@ func GetValueFromConfig(stringPath string, object interface{}) (interface{}, err
 		}
 		if v.Kind() == reflect.Struct {
 			v = v.FieldByName(keyUpper)
-			if v.IsValid() == false {
+			if !v.IsValid() {
 				return nil, fmt.Errorf("%v key does not exist", keyUpper)
 			}
 		} else if v.Kind() == reflect.Slice {

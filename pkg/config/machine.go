@@ -104,7 +104,7 @@ type Ignite struct {
 // validate checks basic rules for Machine's fields
 func (conf Machine) validate() error {
 	validName := strings.Contains(conf.Name, "%d")
-	if validName != true {
+	if !validName {
 		log.Warnf("Machine conf validation: machine name %v is not valid, it should contains %%d", conf.Name)
 		return fmt.Errorf("Machine configuration not valid")
 	}

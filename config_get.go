@@ -6,9 +6,8 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/weaveworks/footloose/pkg/config"
-
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/footloose/pkg/config"
 )
 
 var getConfigCmd = &cobra.Command{
@@ -32,13 +31,14 @@ func getConfig(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	var detail interface{}
-	detail = c
 	if len(args) > 0 {
 		detail, err = config.GetValueFromConfig(args[0], c)
 		if err != nil {
 			log.Println(err)
 			return fmt.Errorf("Failed to get config detail")
 		}
+	} else {
+		detail = c
 	}
 	if reflect.ValueOf(detail).Kind() != reflect.String {
 		res, err := json.MarshalIndent(detail, "", "  ")

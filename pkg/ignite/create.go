@@ -31,9 +31,7 @@ func Create(name string, spec *config.Machine, pubKeyPath string) (id string, er
 	}
 
 	if copyFiles := spec.IgniteConfig().CopyFiles; copyFiles != nil {
-		for _, v := range setupCopyFiles(copyFiles) {
-			runArgs = append(runArgs, v)
-		}
+		runArgs = append(runArgs, setupCopyFiles(copyFiles)...)
 	}
 
 	for _, mapping := range spec.PortMappings {

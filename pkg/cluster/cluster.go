@@ -121,7 +121,7 @@ func (c *Cluster) forSpecificMachines(do func(*Machine, int) error, machineNames
 	}
 	// log warning for non existing machines
 	for key, value := range machineToStart {
-		if value == false {
+		if !value {
 			log.Warnf("machine %v does not exist", key)
 		}
 	}
@@ -206,9 +206,13 @@ func (c *Cluster) createMachine(machine *Machine, i int) error {
 			for _, network := range machine.spec.Networks[1:] {
 				log.Infof("Connecting %s to the %s network...", name, network)
 				if network == "bridge" {
-					docker.ConnectNetwork(name, network)
+					if err := docker.ConnectNetwork(name, network); err != nil {
+						return err
+					}
 				} else {
-					docker.ConnectNetworkWithAlias(name, network, machine.Hostname())
+					if err := docker.ConnectNetworkWithAlias(name, network, machine.Hostname()); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -362,7 +366,7 @@ func (c *Cluster) machineFilering(machines []*Machine, hostnames []string) []*Ma
 		}
 	}
 	for hostname, found := range machinesToKeep {
-		if found != true {
+		if !found {
 			log.Warnf("machine with hostname %s not found", hostname)
 		}
 	}

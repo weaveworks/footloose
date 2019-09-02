@@ -14,11 +14,6 @@ import (
 	"github.com/weaveworks/footloose/pkg/ignite"
 )
 
-type machineCache struct {
-	// maps containerPort -> hostPort.
-	ports map[int]int
-}
-
 // Machine is a single machine.
 type Machine struct {
 	spec *config.Machine
@@ -32,7 +27,9 @@ type Machine struct {
 
 	runtimeNetworks []*RuntimeNetwork
 	// Fields that are cached from the docker daemon.
-	machineCache
+
+	ports map[int]int
+	// maps containerPort -> hostPort.
 }
 
 // ContainerName is the name of the running container corresponding to this
@@ -76,10 +73,7 @@ func (m *Machine) IsStarted() bool {
 
 	res, _ := docker.Inspect(m.name, "{{.State.Running}}")
 	parsed, _ := strconv.ParseBool(strings.Trim(res[0], `'`))
-	if parsed {
-		return true
-	}
-	return false
+	return parsed
 }
 
 // HostPort returns the host port corresponding to the given container port.
