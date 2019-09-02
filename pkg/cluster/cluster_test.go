@@ -15,10 +15,12 @@ func TestMatchFilter(t *testing.T) {
 		regexp: connectRefused,
 	}
 
-	filter.Write([]byte("foo\n"))
+	_, err := filter.Write([]byte("foo\n"))
+	assert.NoError(t, err)
 	assert.Equal(t, false, filter.matched)
 
-	filter.Write([]byte(refused))
+	_, err = filter.Write([]byte(refused))
+	assert.NoError(t, err)
 	assert.Equal(t, false, filter.matched)
 }
 
