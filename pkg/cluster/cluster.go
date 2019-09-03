@@ -41,8 +41,7 @@ func New(conf config.Config) (*Cluster, error) {
 		return nil, err
 	}
 	return &Cluster{
-		spec:     conf,
-		keyStore: NewKeyStore("keys"),
+		spec: conf,
 	}, nil
 }
 
@@ -64,6 +63,12 @@ func NewFromFile(path string) (*Cluster, error) {
 		return nil, err
 	}
 	return NewFromYAML(data)
+}
+
+// SetKeyStore provides a store where to persist public keys for this Cluster.
+func (c *Cluster) SetKeyStore(keyStore *KeyStore) *Cluster {
+	c.keyStore = keyStore
+	return c
 }
 
 // Name returns the cluster name.
@@ -179,7 +184,7 @@ touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 
 func (c *Cluster) publicKey(machine *Machine) ([]byte, error) {
 	// Prefer the machine public key over the cluster-wide key.
-	if machine.spec.PublicKey != "" {
+	if machine.spec.PublicKey != "" && c.keyStore != nil {
 		data, err := c.keyStore.Get(machine.spec.PublicKey)
 		if err != nil {
 			return nil, err

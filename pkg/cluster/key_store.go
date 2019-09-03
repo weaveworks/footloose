@@ -20,6 +20,11 @@ func NewKeyStore(basePath string) *KeyStore {
 	}
 }
 
+// Init initializes the key store, creating the store directory if needed.
+func (s *KeyStore) Init() error {
+	return os.MkdirAll(s.basePath, 0760)
+}
+
 func fileExists(path string) bool {
 	// XXX: There's a subtle bug: if stat fails for another reason that the file
 	// not existing, we return the file exists.

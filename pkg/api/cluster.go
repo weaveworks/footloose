@@ -33,6 +33,7 @@ func (a *API) createCluster(w http.ResponseWriter, r *http.Request) {
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
+	cluster.SetKeyStore(a.keyStore)
 
 	if err := a.db.addCluster(def.Name, cluster); err != nil {
 		sendError(w, http.StatusBadRequest, err)

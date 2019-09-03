@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/footloose/pkg/api"
+	"github.com/weaveworks/footloose/pkg/cluster"
 	"github.com/weaveworks/footloose/pkg/config"
 )
 
@@ -23,7 +24,8 @@ func newEnv() *env {
 	// Create an API server
 	server := httptest.NewUnstartedServer(nil)
 	baseURI := "http://" + server.Listener.Addr().String()
-	api := api.New(baseURI)
+	keyStore := cluster.NewKeyStore(".")
+	api := api.New(baseURI, keyStore)
 	server.Config.Handler = api.Router()
 	server.Start()
 

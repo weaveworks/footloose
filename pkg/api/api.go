@@ -13,10 +13,10 @@ type API struct {
 }
 
 // New creates a new object able to answer footloose REST API.
-func New(baseURI string) *API {
+func New(baseURI string, keyStore *cluster.KeyStore) *API {
 	api := &API{
 		BaseURI:  baseURI,
-		keyStore: cluster.NewKeyStore("keys"),
+		keyStore: keyStore,
 	}
 	api.db.init()
 	return api
