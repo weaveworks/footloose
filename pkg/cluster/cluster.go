@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
 	"github.com/weaveworks/footloose/pkg/docker"
@@ -29,7 +30,8 @@ type Container struct {
 
 // Cluster is a running cluster.
 type Cluster struct {
-	spec config.Config
+	spec     config.Config
+	keyStore *KeyStore
 }
 
 // New creates a new cluster. It takes as input the description of the cluster
@@ -63,6 +65,17 @@ func NewFromFile(path string) (*Cluster, error) {
 	return NewFromYAML(data)
 }
 
+// SetKeyStore provides a store where to persist public keys for this Cluster.
+func (c *Cluster) SetKeyStore(keyStore *KeyStore) *Cluster {
+	c.keyStore = keyStore
+	return c
+}
+
+// Name returns the cluster name.
+func (c *Cluster) Name() string {
+	return c.spec.Cluster.Name
+}
+
 // Save writes the Cluster configure to a file.
 func (c *Cluster) Save(path string) error {
 	data, err := yaml.Marshal(c.spec)
@@ -76,15 +89,28 @@ func f(format string, args ...interface{}) string {
 	return fmt.Sprintf(format, args...)
 }
 
-func (c *Cluster) containerName(machine *config.Machine, i int) string {
+func (c *Cluster) containerName(machine *config.Machine) string {
+	return fmt.Sprintf("%s-%s", c.spec.Cluster.Name, machine.Name)
+}
+
+func (c *Cluster) containerNameWithIndex(machine *config.Machine, i int) string {
 	format := "%s-" + machine.Name
 	return f(format, c.spec.Cluster.Name, i)
+}
+
+// NewMachine creates a new Machine in the cluster.
+func (c *Cluster) NewMachine(spec *config.Machine) *Machine {
+	return &Machine{
+		spec:     spec,
+		name:     c.containerName(spec),
+		hostname: spec.Name,
+	}
 }
 
 func (c *Cluster) machine(spec *config.Machine, i int) *Machine {
 	return &Machine{
 		spec:     spec,
-		name:     c.containerName(spec, i),
+		name:     c.containerNameWithIndex(spec, i),
 		hostname: f(spec.Name, i),
 	}
 }
@@ -129,6 +155,9 @@ func (c *Cluster) forSpecificMachines(do func(*Machine, int) error, machineNames
 }
 
 func (c *Cluster) ensureSSHKey() error {
+	if c.spec.Cluster.PrivateKey == "" {
+		return nil
+	}
 	path, _ := homedir.Expand(c.spec.Cluster.PrivateKey)
 	if _, err := os.Stat(path); err == nil {
 		return nil
@@ -153,15 +182,34 @@ mkdir $sshdir; chmod 700 $sshdir
 touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 `
 
-func (c *Cluster) publicKey() ([]byte, error) {
-	path, _ := homedir.Expand(c.spec.Cluster.PrivateKey)
+func (c *Cluster) publicKey(machine *Machine) ([]byte, error) {
+	// Prefer the machine public key over the cluster-wide key.
+	if machine.spec.PublicKey != "" && c.keyStore != nil {
+		data, err := c.keyStore.Get(machine.spec.PublicKey)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, byte('\n'))
+		return data, err
+	}
+
+	// Cluster global key
+	if c.spec.Cluster.PrivateKey == "" {
+		return nil, errors.New("no SSH key provided")
+	}
+
+	path, err := homedir.Expand(c.spec.Cluster.PrivateKey)
+	if err != nil {
+		return nil, errors.Wrap(err, "public key expand")
+	}
 	return ioutil.ReadFile(path + ".pub")
 }
 
-func (c *Cluster) createMachine(machine *Machine, i int) error {
+// CreateMachine creates and starts a new machine in the cluster.
+func (c *Cluster) CreateMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 
-	publicKey, err := c.publicKey()
+	publicKey, err := c.publicKey(machine)
 	if err != nil {
 		return err
 	}
@@ -299,10 +347,11 @@ func (c *Cluster) Create() error {
 			return err
 		}
 	}
-	return c.forEachMachine(c.createMachine)
+	return c.forEachMachine(c.CreateMachine)
 }
 
-func (c *Cluster) deleteMachine(machine *Machine, i int) error {
+// DeleteMachine remove a Machine from the cluster.
+func (c *Cluster) DeleteMachine(machine *Machine, i int) error {
 	name := machine.ContainerName()
 	if !machine.IsCreated() {
 		log.Infof("Machine %s hasn't been created...", name)
@@ -336,7 +385,7 @@ func (c *Cluster) deleteMachine(machine *Machine, i int) error {
 
 // Delete deletes the cluster.
 func (c *Cluster) Delete() error {
-	return c.forEachMachine(c.deleteMachine)
+	return c.forEachMachine(c.DeleteMachine)
 }
 
 // Inspect will generate information about running or stopped machines.
@@ -357,7 +406,7 @@ func (c *Cluster) machineFilering(machines []*Machine, hostnames []string) []*Ma
 	for _, machine := range hostnames {
 		machinesToKeep[machine] = false
 	}
-	// newMcahines is the filtered list
+	// newMachines is the filtered list
 	newMachines := make([]*Machine, 0)
 	for _, m := range machines {
 		if _, ok := machinesToKeep[m.hostname]; ok {

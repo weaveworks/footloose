@@ -41,10 +41,14 @@ type PortMapping struct {
 
 // Machine is the machine configuration.
 type Machine struct {
-	// Name is the machine name. This is a format string with %d as the machine
-	// index, a number between 0 and N-1, N being the number of machines in the
-	// cluster. This name will also be used as the machine hostname. Defaults to
-	// "node%d".
+	// Name is the machine name.
+	//
+	// When used in a MachineReplicas object, eg. in footloose.yaml config files,
+	// this field a format string. This format string needs to have a '%d', which
+	// is populated by the machine index, a number between 0 and N-1, N being the
+	// Count field of MachineReplicas. Name will default to "node%d"
+	//
+	// This name will also be used as the machine hostname.
 	Name string `json:"name"`
 	// Image is the container image to use for this machine.
 	Image string `json:"image"`
@@ -61,6 +65,10 @@ type Machine struct {
 	PortMappings []PortMapping `json:"portMappings,omitempty"`
 	// Cmd is a cmd which will be run in the container.
 	Cmd string `json:"cmd,omitempty"`
+	// PublicKey is the name of the public key to upload onto the machine for root
+	// SSH access.
+	PublicKey string `json:"publicKey,omitempty"`
+
 	// Backend specifies the runtime backend for this machine
 	Backend string `json:"backend,omitempty"`
 	// Ignite specifies ignite-specific options

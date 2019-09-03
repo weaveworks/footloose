@@ -10,6 +10,9 @@ func imageTag(v string) string {
 	return v
 }
 
+// defaultKeyStore is the path where to store the public keys.
+const defaultKeyStorePath = "keys"
+
 var defaultConfig = config.Config{
 	Cluster: config.Cluster{
 		Name:       "cluster",

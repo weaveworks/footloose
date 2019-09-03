@@ -103,6 +103,42 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 	return m.ports[containerPort], nil
 }
 
+// Status returns the machine status.
+func (m *Machine) Status() *MachineStatus {
+	s := MachineStatus{}
+
+	s.Container = m.ContainerName()
+	s.Image = m.spec.Image
+	s.Command = m.spec.Cmd
+	s.Spec = m.spec
+	s.Hostname = m.Hostname()
+	state := NotCreated
+	if m.IsCreated() {
+		state = Stopped
+		if m.IsStarted() {
+			state = Running
+		}
+	}
+	s.State = state
+	var ports []port
+	for k, v := range m.ports {
+		p := port{
+			Host:  v,
+			Guest: k,
+		}
+		ports = append(ports, p)
+	}
+	if len(ports) < 1 {
+		for _, p := range m.spec.PortMappings {
+			ports = append(ports, port{Host: int(p.ContainerPort), Guest: 0})
+		}
+	}
+	s.Ports = ports
+	s.RuntimeNetworks = m.runtimeNetworks
+
+	return &s
+}
+
 // Only check for Ignite prerequisites once
 var igniteChecked bool
 

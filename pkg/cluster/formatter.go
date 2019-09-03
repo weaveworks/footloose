@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"text/tabwriter"
 
@@ -14,8 +13,8 @@ import (
 // Formatter formats a slice of machines and outputs the result
 // in a given format.
 type Formatter interface {
-	Format([]*Machine) error
-	FormatSingle(*Machine) error
+	Format(io.Writer, []*Machine) error
+	FormatSingle(io.Writer, *Machine) error
 }
 
 // JSONFormatter formats a slice of machines into a JSON and
@@ -40,7 +39,8 @@ const (
 	Running = "Running"
 )
 
-type status struct {
+// MachineStatus is the runtime status of a Machine.
+type MachineStatus struct {
 	Container       string            `json:"container"`
 	State           string            `json:"state"`
 	Spec            *config.Machine   `json:"spec,omitempty"`
@@ -52,44 +52,14 @@ type status struct {
 }
 
 // Format will output to stdout in JSON format.
-func (JSONFormatter) Format(machines []*Machine) error {
-	var statuses []status
+func (JSONFormatter) Format(w io.Writer, machines []*Machine) error {
+	var statuses []MachineStatus
 	for _, m := range machines {
-		s := status{}
-		s.Hostname = m.Hostname()
-		s.Container = m.ContainerName()
-		s.Image = m.spec.Image
-		s.Command = m.spec.Cmd
-		s.Spec = m.spec
-		state := NotCreated
-		if m.IsCreated() {
-			state = Stopped
-			if m.IsStarted() {
-				state = Running
-			}
-		}
-		s.State = state
-		var ports []port
-		for k, v := range m.ports {
-			p := port{
-				Host:  v,
-				Guest: k,
-			}
-			ports = append(ports, p)
-		}
-		if len(ports) < 1 {
-			for _, p := range m.spec.PortMappings {
-				ports = append(ports, port{Host: int(p.ContainerPort), Guest: 0})
-			}
-		}
-		s.Ports = ports
-		s.RuntimeNetworks = m.runtimeNetworks
-
-		statuses = append(statuses, s)
+		statuses = append(statuses, *m.Status())
 	}
 
 	m := struct {
-		Machines []status `json:"machines"`
+		Machines []MachineStatus `json:"machines"`
 	}{
 		Machines: statuses,
 	}
@@ -97,13 +67,19 @@ func (JSONFormatter) Format(machines []*Machine) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(ms))
-	return nil
+	ms = append(ms, '\n')
+	_, err = w.Write(ms)
+	return err
 }
 
 // FormatSingle is a json formatter for a single machine.
-func (js JSONFormatter) FormatSingle(m *Machine) error {
-	return js.Format([]*Machine{m})
+func (js JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
+	status, err := json.MarshalIndent(m.Status(), "", "  ")
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(status)
+	return err
 }
 
 type tableMachine struct {
@@ -122,9 +98,9 @@ func writeColumns(w io.Writer, cols []string) {
 }
 
 // Format will output to stdout in table format.
-func (TableFormatter) Format(machines []*Machine) error {
+func (TableFormatter) Format(w io.Writer, machines []*Machine) error {
 	const padding = 3
-	table := tabwriter.NewWriter(os.Stdout, 0, 0, padding, ' ', 0)
+	table := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
 	writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
 	for _, m := range machines {
 		state := NotCreated
@@ -163,9 +139,9 @@ func (TableFormatter) Format(machines []*Machine) error {
 }
 
 // FormatSingle is a table formatter for a single machine.
-func (TableFormatter) FormatSingle(machine *Machine) error {
+func (TableFormatter) FormatSingle(w io.Writer, machine *Machine) error {
 	jsonFormatter := JSONFormatter{}
-	return jsonFormatter.FormatSingle(machine)
+	return jsonFormatter.FormatSingle(w, machine)
 }
 
 func GetFormatter(output string) (Formatter, error) {
