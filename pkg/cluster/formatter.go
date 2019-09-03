@@ -67,6 +67,7 @@ func (JSONFormatter) Format(w io.Writer, machines []*Machine) error {
 	if err != nil {
 		return err
 	}
+	ms = append(ms, '\n')
 	_, err = w.Write(ms)
 	return err
 }

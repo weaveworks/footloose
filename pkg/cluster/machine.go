@@ -111,6 +111,7 @@ func (m *Machine) Status() *MachineStatus {
 	s.Image = m.spec.Image
 	s.Command = m.spec.Cmd
 	s.Spec = m.spec
+	s.Hostname = m.Hostname()
 	state := NotCreated
 	if m.IsCreated() {
 		state = Stopped
