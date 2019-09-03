@@ -40,7 +40,7 @@ func (a *API) createCluster(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := cluster.Create(); err != nil {
-		a.db.removeCluster(def.Name)
+		_, _ = a.db.removeCluster(def.Name)
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -58,6 +58,10 @@ func (a *API) deleteCluster(w http.ResponseWriter, r *http.Request) {
 
 	// Starts by deleting the machines associated with the cluster.
 	machines, err := a.db.machines(vars["cluster"])
+	if err != nil {
+		sendError(w, http.StatusBadRequest, err)
+		return
+	}
 	for _, m := range machines {
 		if err := c.DeleteMachine(m, 0); err != nil {
 			sendError(w, http.StatusInternalServerError, err)

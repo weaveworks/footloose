@@ -49,11 +49,6 @@ func (a *API) getPublicKey(w http.ResponseWriter, r *http.Request) {
 		sendError(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	if err != nil {
-		sendError(w, http.StatusInternalServerError, err)
-		return
-	}
 }
 
 func (a *API) deletePublicKey(w http.ResponseWriter, r *http.Request) {

@@ -24,10 +24,7 @@ func fileExists(path string) bool {
 	// XXX: There's a subtle bug: if stat fails for another reason that the file
 	// not existing, we return the file exists.
 	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
+	return !os.IsNotExist(err)
 }
 
 func (s *KeyStore) keyPath(name string) string {

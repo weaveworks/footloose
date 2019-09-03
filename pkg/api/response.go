@@ -20,7 +20,7 @@ func sendError(w http.ResponseWriter, status int, err error) {
 	resp := ErrorResponse{
 		Error: err.Error(),
 	}
-	json.NewEncoder(w).Encode(&resp)
+	_ = json.NewEncoder(w).Encode(&resp)
 }
 
 // CreatedResponse is the response POST entry points return when a resource has been
@@ -35,5 +35,5 @@ func sendCreated(w http.ResponseWriter, URI string) {
 	resp := CreatedResponse{
 		URI: URI,
 	}
-	json.NewEncoder(w).Encode(&resp)
+	_ = json.NewEncoder(w).Encode(&resp)
 }

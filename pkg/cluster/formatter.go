@@ -67,8 +67,8 @@ func (JSONFormatter) Format(w io.Writer, machines []*Machine) error {
 	if err != nil {
 		return err
 	}
-	w.Write(ms)
-	return nil
+	_, err = w.Write(ms)
+	return err
 }
 
 // FormatSingle is a json formatter for a single machine.
