@@ -464,8 +464,8 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 			}
 			p := config.PortMapping{}
 			hostPort, _ := strconv.Atoi(v[0].HostPort)
-			p.HostPort = uint16(k.Int())
-			p.ContainerPort = uint16(hostPort)
+			p.HostPort = uint16(hostPort)
+			p.ContainerPort = uint16(k.Int())
 			p.Address = v[0].HostIP
 			ports = append(ports, p)
 		}
