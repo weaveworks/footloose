@@ -16,7 +16,7 @@ type API struct {
 func New(baseURI string) *API {
 	api := &API{
 		BaseURI:  baseURI,
-		keyStore: cluster.NewKeyStore("."),
+		keyStore: cluster.NewKeyStore("keys"),
 	}
 	api.db.init()
 	return api

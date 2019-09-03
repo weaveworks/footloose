@@ -42,7 +42,7 @@ func New(conf config.Config) (*Cluster, error) {
 	}
 	return &Cluster{
 		spec:     conf,
-		keyStore: NewKeyStore("."),
+		keyStore: NewKeyStore("keys"),
 	}, nil
 }
 
