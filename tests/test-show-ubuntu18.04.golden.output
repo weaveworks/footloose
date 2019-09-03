@@ -17,8 +17,8 @@ test-show-ubuntu18.04-node0   node0      0->22        quay.io/footloose/ubuntu18
       },
       "ports": [
         {
-          "guest": 0,
-          "host": 22
+          "guest": 22,
+          "host": 0
         }
       ],
       "hostname": "node0",
