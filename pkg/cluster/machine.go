@@ -113,24 +113,28 @@ func (m *Machine) Status() *MachineStatus {
 	s.Spec = m.spec
 	s.Hostname = m.Hostname()
 	state := NotCreated
+	var ports []port
 	if m.IsCreated() {
 		state = Stopped
 		if m.IsStarted() {
 			state = Running
 		}
+		for _, v := range m.spec.PortMappings {
+			hPort, err := m.HostPort(int(v.ContainerPort))
+			if err != nil {
+				hPort = 0
+			}
+			p := port{
+				Host:  hPort,
+				Guest: int(v.ContainerPort),
+			}
+			ports = append(ports, p)
+		}
 	}
 	s.State = state
-	var ports []port
-	for k, v := range m.ports {
-		p := port{
-			Host:  v,
-			Guest: k,
-		}
-		ports = append(ports, p)
-	}
 	if len(ports) < 1 {
 		for _, p := range m.spec.PortMappings {
-			ports = append(ports, port{Host: int(p.ContainerPort), Guest: 0})
+			ports = append(ports, port{Host: 0, Guest: int(p.ContainerPort)})
 		}
 	}
 	s.Ports = ports
