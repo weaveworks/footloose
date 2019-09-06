@@ -25,7 +25,8 @@ func showVersion(cmd *cobra.Command, args []string) {
 	fmt.Println("version:", version)
 	release, err := release.FindLastRelease()
 	if err != nil {
-		fmt.Println("Failed to check for new versions")
+		fmt.Println("version: failed to check for new versions. You may want to check yourself at https://github.com/weaveworks/footloose/releases.")
+		return
 	}
 	if strings.Compare(version, *release.TagName) != 0 {
 		fmt.Printf("New version %v is available. More information at: %v\n", *release.TagName, *release.HTMLURL)
