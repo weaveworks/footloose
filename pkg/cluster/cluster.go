@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -452,10 +451,11 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 			continue
 		}
 
-		inspect, err := c.gatherMachineDetails(m.name)
-		if err != nil {
+		var inspect types.ContainerJSON
+		if err := docker.InspectObject(m.name, ".", &inspect); err != nil {
 			return machines, err
 		}
+
 		// Set Ports
 		ports := make([]config.PortMapping, 0)
 		for k, v := range inspect.NetworkSettings.Ports {
@@ -486,19 +486,6 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 		m.ip = inspect.NetworkSettings.IPAddress
 		m.runtimeNetworks = NewRuntimeNetworks(inspect.NetworkSettings.Networks)
 
-	}
-	return
-}
-
-func (c *Cluster) gatherMachineDetails(name string) (container types.ContainerJSON, err error) {
-	res, err := docker.Inspect(name, "{{json .}}")
-	if err != nil {
-		return container, err
-	}
-	data := []byte(strings.Trim(res[0], "'"))
-	err = json.Unmarshal(data, &container)
-	if err != nil {
-		return container, err
 	}
 	return
 }
