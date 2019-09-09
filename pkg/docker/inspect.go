@@ -17,10 +17,25 @@ limitations under the License.
 package docker
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/exec"
 )
+
+func runWithLoggingOutput(cmd exec.Cmd) ([]string, error) {
+	output, err := exec.CombinedOutputLines(cmd)
+	if err != nil {
+		// log error output if there was any
+		for _, line := range output {
+			log.Error(line)
+		}
+	}
+	return output, err
+
+}
 
 // Inspect return low-level information on containers
 func Inspect(containerNameOrID, format string) ([]string, error) {
@@ -30,7 +45,7 @@ func Inspect(containerNameOrID, format string) ([]string, error) {
 		containerNameOrID, // ... against the "node" container
 	)
 
-	return exec.CombinedOutputLines(cmd)
+	return runWithLoggingOutput(cmd)
 
 }
 
