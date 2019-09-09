@@ -6,6 +6,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
@@ -103,6 +104,19 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 	return m.ports[containerPort], nil
 }
 
+func (m *Machine) networks() ([]*RuntimeNetwork, error) {
+	if len(m.runtimeNetworks) != 0 {
+		return m.runtimeNetworks, nil
+	}
+
+	var networks map[string]*network.EndpointSettings
+	if err := docker.InspectObject(m.name, ".NetworkSettings.Networks", &networks); err != nil {
+		return nil, err
+	}
+	m.runtimeNetworks = NewRuntimeNetworks(networks)
+	return m.runtimeNetworks, nil
+}
+
 // Status returns the machine status.
 func (m *Machine) Status() *MachineStatus {
 	s := MachineStatus{}
@@ -138,7 +152,7 @@ func (m *Machine) Status() *MachineStatus {
 		}
 	}
 	s.Ports = ports
-	s.RuntimeNetworks = m.runtimeNetworks
+	s.RuntimeNetworks, _ = m.networks()
 
 	return &s
 }
