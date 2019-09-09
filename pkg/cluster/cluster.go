@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -431,31 +430,14 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 			continue
 		}
 		if m.IsIgnite() {
-			vm, err := ignite.PopulateMachineDetails(m.name)
-			if err != nil {
-				return machines, err
-			}
-
-			// Set Ports
-			ports := make([]config.PortMapping, 0)
-			for _, port := range vm.Spec.Network.Ports {
-				p := config.PortMapping{}
-				p.HostPort = port.HostPort
-				p.ContainerPort = port.VMPort
-				ports = append(ports, p)
-			}
-			m.spec.PortMappings = ports
-			if vm.Status.IpAddresses != nil && len(vm.Status.IpAddresses) > 0 {
-				m.ip = vm.Status.IpAddresses[0]
-			}
-
 			continue
 		}
 
-		inspect, err := c.gatherMachineDetails(m.name)
-		if err != nil {
+		var inspect types.ContainerJSON
+		if err := docker.InspectObject(m.name, ".", &inspect); err != nil {
 			return machines, err
 		}
+
 		// Set Ports
 		ports := make([]config.PortMapping, 0)
 		for k, v := range inspect.NetworkSettings.Ports {
@@ -486,19 +468,6 @@ func (c *Cluster) gatherMachines() (machines []*Machine, err error) {
 		m.ip = inspect.NetworkSettings.IPAddress
 		m.runtimeNetworks = NewRuntimeNetworks(inspect.NetworkSettings.Networks)
 
-	}
-	return
-}
-
-func (c *Cluster) gatherMachineDetails(name string) (container types.ContainerJSON, err error) {
-	res, err := docker.Inspect(name, "{{json .}}")
-	if err != nil {
-		return container, err
-	}
-	data := []byte(strings.Trim(res[0], "'"))
-	err = json.Unmarshal(data, &container)
-	if err != nil {
-		return container, err
 	}
 	return
 }

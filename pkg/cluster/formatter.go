@@ -48,7 +48,7 @@ type MachineStatus struct {
 	Hostname        string            `json:"hostname"`
 	Image           string            `json:"image"`
 	Command         string            `json:"cmd"`
-	RuntimeNetworks []*RuntimeNetwork `json:"runtime_networks,omitempty"`
+	RuntimeNetworks []*RuntimeNetwork `json:"runtimeNetworks,omitempty"`
 }
 
 // Format will output to stdout in JSON format.

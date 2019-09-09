@@ -6,6 +6,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/docker/docker/api/types/network"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/footloose/pkg/config"
@@ -103,22 +104,46 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 	return m.ports[containerPort], nil
 }
 
-// Status returns the machine status.
-func (m *Machine) Status() *MachineStatus {
-	s := MachineStatus{}
+func (m *Machine) networks() ([]*RuntimeNetwork, error) {
+	if len(m.runtimeNetworks) != 0 {
+		return m.runtimeNetworks, nil
+	}
 
-	s.Container = m.ContainerName()
-	s.Image = m.spec.Image
-	s.Command = m.spec.Cmd
-	s.Spec = m.spec
-	s.Hostname = m.Hostname()
-	state := NotCreated
+	var networks map[string]*network.EndpointSettings
+	if err := docker.InspectObject(m.name, ".NetworkSettings.Networks", &networks); err != nil {
+		return nil, err
+	}
+	m.runtimeNetworks = NewRuntimeNetworks(networks)
+	return m.runtimeNetworks, nil
+}
+
+func (m *Machine) igniteStatus(s *MachineStatus) error {
+	vm, err := ignite.PopulateMachineDetails(m.name)
+	if err != nil {
+		return err
+	}
+
+	// Set Ports
+	var ports []port
+	for _, p := range vm.Spec.Network.Ports {
+		ports = append(ports, port{
+			Host:  int(p.HostPort),
+			Guest: int(p.VMPort),
+		})
+	}
+	s.Ports = ports
+	if vm.Status.IpAddresses != nil && len(vm.Status.IpAddresses) > 0 {
+		m.ip = vm.Status.IpAddresses[0]
+	}
+
+	s.RuntimeNetworks = NewIgniteRuntimeNetwork(&vm.Status)
+
+	return nil
+}
+
+func (m *Machine) dockerStatus(s *MachineStatus) error {
 	var ports []port
 	if m.IsCreated() {
-		state = Stopped
-		if m.IsStarted() {
-			state = Running
-		}
 		for _, v := range m.spec.PortMappings {
 			hPort, err := m.HostPort(int(v.ContainerPort))
 			if err != nil {
@@ -131,14 +156,41 @@ func (m *Machine) Status() *MachineStatus {
 			ports = append(ports, p)
 		}
 	}
-	s.State = state
 	if len(ports) < 1 {
 		for _, p := range m.spec.PortMappings {
 			ports = append(ports, port{Host: 0, Guest: int(p.ContainerPort)})
 		}
 	}
 	s.Ports = ports
-	s.RuntimeNetworks = m.runtimeNetworks
+
+	s.RuntimeNetworks, _ = m.networks()
+
+	return nil
+}
+
+// Status returns the machine status.
+func (m *Machine) Status() *MachineStatus {
+	s := MachineStatus{}
+	s.Container = m.ContainerName()
+	s.Image = m.spec.Image
+	s.Command = m.spec.Cmd
+	s.Spec = m.spec
+	s.Hostname = m.Hostname()
+	state := NotCreated
+
+	if m.IsCreated() {
+		state = Stopped
+		if m.IsStarted() {
+			state = Running
+		}
+	}
+	s.State = state
+
+	if m.IsIgnite() {
+		_ = m.igniteStatus(&s)
+	} else {
+		_ = m.dockerStatus(&s)
+	}
 
 	return &s
 }

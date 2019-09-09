@@ -17,7 +17,9 @@ limitations under the License.
 package docker
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/weaveworks/footloose/pkg/exec"
 )
@@ -31,4 +33,19 @@ func Inspect(containerNameOrID, format string) ([]string, error) {
 	)
 
 	return exec.CombinedOutputLines(cmd)
+
+}
+
+// InspectObject is similar to Inspect but deserializes the JSON output to a struct.
+func InspectObject(containerNameOrID, format string, out interface{}) error {
+	res, err := Inspect(containerNameOrID, fmt.Sprintf("{{json %s}}", format))
+	if err != nil {
+		return err
+	}
+	data := []byte(strings.Trim(res[0], "'"))
+	err = json.Unmarshal(data, out)
+	if err != nil {
+		return err
+	}
+	return nil
 }

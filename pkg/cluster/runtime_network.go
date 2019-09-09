@@ -4,6 +4,7 @@ import (
 	"net"
 
 	"github.com/docker/docker/api/types/network"
+	"github.com/weaveworks/footloose/pkg/ignite"
 )
 
 const (
@@ -24,6 +25,18 @@ func NewRuntimeNetworks(networks map[string]*network.EndpointSettings) []*Runtim
 		rnList = append(rnList, rnNetwork)
 	}
 	return rnList
+}
+
+// NewIgniteRuntimeNetwork creates reports network status for the ignite backend.
+func NewIgniteRuntimeNetwork(status *ignite.Status) []*RuntimeNetwork {
+	networks := make([]*RuntimeNetwork, 0, len(status.IpAddresses))
+	for _, ip := range status.IpAddresses {
+		networks = append(networks, &RuntimeNetwork{
+			IP: ip,
+		})
+	}
+
+	return networks
 }
 
 type RuntimeNetwork struct {
