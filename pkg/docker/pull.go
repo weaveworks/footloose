@@ -17,6 +17,7 @@ limitations under the License.
 package docker
 
 import (
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -43,15 +44,14 @@ func PullIfNotPresent(image string, retries int) (pulled bool, err error) {
 // Pull pulls an image, retrying up to retries times
 func Pull(image string, retries int) error {
 	log.Infof("Pulling image: %s ...", image)
-	err := exec.Command("docker", "pull", image).Run()
+	err := setPullCmd(image).Run()
 	// retry pulling up to retries times if necessary
 	if err != nil {
 		for i := 0; i < retries; i++ {
 			time.Sleep(time.Second * time.Duration(i+1))
 			log.WithError(err).Infof("Trying again to pull image: %s ...", image)
 			// TODO(bentheelder): add some backoff / sleep?
-			err = exec.Command("docker", "pull", image).Run()
-			if err == nil {
+			if err = setPullCmd(image).Run(); err == nil {
 				break
 			}
 		}
@@ -60,4 +60,10 @@ func Pull(image string, retries int) error {
 		log.WithError(err).Infof("Failed to pull image: %s", image)
 	}
 	return err
+}
+
+func setPullCmd(image string) exec.Cmd {
+	cmd := exec.Command("docker", "pull", image)
+	cmd.SetStderr(os.Stderr)
+	return cmd
 }
