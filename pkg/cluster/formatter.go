@@ -14,7 +14,6 @@ import (
 // in a given format.
 type Formatter interface {
 	Format(io.Writer, []*Machine) error
-	FormatSingle(io.Writer, *Machine) error
 }
 
 // JSONFormatter formats a slice of machines into a JSON and
@@ -48,6 +47,7 @@ type MachineStatus struct {
 	Hostname        string            `json:"hostname"`
 	Image           string            `json:"image"`
 	Command         string            `json:"cmd"`
+	IP              string            `json:"ip"`
 	RuntimeNetworks []*RuntimeNetwork `json:"runtimeNetworks,omitempty"`
 }
 
@@ -82,77 +82,46 @@ func (js JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
 	return err
 }
 
-type tableMachine struct {
-	Container string
-	Hostname  string
-	Ports     string
-	IP        string
-	Image     string
-	Cmd       string
-	State     string
-	Backend   string
-}
-
-func writeColumns(w io.Writer, cols []string) {
-	fmt.Fprintln(w, strings.Join(cols, "\t"))
+func writeColumns(w io.Writer, cols []string) error {
+	_, err := fmt.Fprintln(w, strings.Join(cols, "\t"))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Format will output to stdout in table format.
 func (TableFormatter) Format(w io.Writer, machines []*Machine) error {
 	const padding = 3
-	table := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
-	writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
+	var statuses []MachineStatus
 	for _, m := range machines {
-		state := NotCreated
-		if m.IsCreated() {
-			state = Stopped
-			if m.IsStarted() {
-				state = Running
-			}
-		}
+		statuses = append(statuses, *m.Status())
+	}
+
+	table := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
+	err := writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
+	if err != nil {
+		return err
+	}
+
+	for _, s := range statuses {
 		var ports []string
-		for k, v := range m.ports {
+		for k, v := range s.Ports {
 			p := fmt.Sprintf("%d->%d", k, v)
 			ports = append(ports, p)
 		}
 		if len(ports) < 1 {
-			for _, p := range m.spec.PortMappings {
+			for _, p := range s.Spec.PortMappings {
 				port := fmt.Sprintf("%d->%d", p.HostPort, p.ContainerPort)
 				ports = append(ports, port)
 			}
 		}
 		ps := strings.Join(ports, ",")
-		tm := tableMachine{
-			Container: m.ContainerName(),
-			Hostname:  m.Hostname(),
-			Ports:     ps,
-			IP:        m.ip,
-			Image:     m.spec.Image,
-			Cmd:       m.spec.Cmd,
-			State:     state,
-			Backend:   m.spec.Backend,
+		err = writeColumns(table, []string{s.Container, s.Hostname, ps, s.IP, s.Image, s.Command, s.State, s.Spec.Backend})
+		if err != nil {
+			return err
 		}
-		writeColumns(table, []string{tm.Container, tm.Hostname, tm.Ports, tm.IP, tm.Image, tm.Cmd, tm.State, tm.Backend})
 	}
-	table.Flush()
-	return nil
-}
 
-// FormatSingle is a table formatter for a single machine.
-func (TableFormatter) FormatSingle(w io.Writer, machine *Machine) error {
-	jsonFormatter := JSONFormatter{}
-	return jsonFormatter.FormatSingle(w, machine)
-}
-
-func GetFormatter(output string) (Formatter, error) {
-	var formatter Formatter
-	switch output {
-	case "json":
-		formatter = new(JSONFormatter)
-	case "table":
-		formatter = new(TableFormatter)
-	default:
-		return nil, fmt.Errorf("unknown formatter '%s'", output)
-	}
-	return formatter, nil
+	return table.Flush()
 }

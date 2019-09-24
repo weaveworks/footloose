@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -34,9 +35,14 @@ func show(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	formatter, err := cluster.GetFormatter(showOptions.output)
-	if err != nil {
-		return err
+	var formatter cluster.Formatter
+	switch showOptions.output {
+	case "json":
+		formatter = new(cluster.JSONFormatter)
+	case "table":
+		formatter = new(cluster.TableFormatter)
+	default:
+		return fmt.Errorf("unknown formatter '%s'", showOptions.output)
 	}
 	machines, err := c.Inspect(args)
 	if err != nil {

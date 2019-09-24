@@ -176,6 +176,7 @@ func (m *Machine) Status() *MachineStatus {
 	s.Command = m.spec.Cmd
 	s.Spec = m.spec
 	s.Hostname = m.Hostname()
+	s.IP = m.ip
 	state := NotCreated
 
 	if m.IsCreated() {
@@ -198,6 +199,7 @@ func (m *Machine) Status() *MachineStatus {
 // Only check for Ignite prerequisites once
 var igniteChecked bool
 
+// IsIgnite returns if the backend is Ignite
 func (m *Machine) IsIgnite() (b bool) {
 	b = m.spec.Backend == ignite.BackendName
 
