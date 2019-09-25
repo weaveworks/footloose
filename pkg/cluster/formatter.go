@@ -82,25 +82,31 @@ func (js JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
 	return err
 }
 
-func writeColumns(w io.Writer, cols []string) error {
+// contains writeColumns error value to clean-up some error handling in the code
+type writer struct {
+	err error
+}
+
+// writerColumns is a no-op if there was an error already
+func (wr writer) writeColumns(w io.Writer, cols []string) {
+	if wr.err != nil {
+		return
+	}
 	_, err := fmt.Fprintln(w, strings.Join(cols, "\t"))
-	return err
+	wr.err = err
 }
 
 // Format will output to stdout in table format.
 func (TableFormatter) Format(w io.Writer, machines []*Machine) error {
 	const padding = 3
+	wr := new(writer)
 	var statuses []MachineStatus
 	for _, m := range machines {
 		statuses = append(statuses, *m.Status())
 	}
 
 	table := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
-	err := writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
-	if err != nil {
-		return err
-	}
-
+	wr.writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
 	for _, s := range statuses {
 		var ports []string
 		for k, v := range s.Ports {
@@ -114,11 +120,11 @@ func (TableFormatter) Format(w io.Writer, machines []*Machine) error {
 			}
 		}
 		ps := strings.Join(ports, ",")
-		err = writeColumns(table, []string{s.Container, s.Hostname, ps, s.IP, s.Image, s.Command, s.State, s.Spec.Backend})
-		if err != nil {
-			return err
-		}
+		wr.writeColumns(table, []string{s.Container, s.Hostname, ps, s.IP, s.Image, s.Command, s.State, s.Spec.Backend})
 	}
 
+	if wr.err != nil {
+		return wr.err
+	}
 	return table.Flush()
 }
