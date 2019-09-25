@@ -23,7 +23,8 @@ test-show-ubuntu18.04-node0   node0      0->{22 0}        quay.io/footloose/ubun
       ],
       "hostname": "node0",
       "image": "quay.io/footloose/ubuntu18.04",
-      "cmd": ""
+      "cmd": "",
+      "ip": ""
     }
   ]
 }
