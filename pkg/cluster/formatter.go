@@ -73,7 +73,7 @@ func (JSONFormatter) Format(w io.Writer, machines []*Machine) error {
 }
 
 // FormatSingle is a json formatter for a single machine.
-func (js JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
+func (JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
 	status, err := json.MarshalIndent(m.Status(), "", "  ")
 	if err != nil {
 		return err
@@ -82,7 +82,7 @@ func (js JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
 	return err
 }
 
-// contains writeColumns error value to clean-up some error handling in the code
+// writer contains writeColumns' error value to clean-up some error handling
 type writer struct {
 	err error
 }
@@ -107,6 +107,10 @@ func (TableFormatter) Format(w io.Writer, machines []*Machine) error {
 
 	table := tabwriter.NewWriter(w, 0, 0, padding, ' ', 0)
 	wr.writeColumns(table, []string{"NAME", "HOSTNAME", "PORTS", "IP", "IMAGE", "CMD", "STATE", "BACKEND"})
+	// we bail early here if there was an error so we don't process the below loop
+	if wr.err != nil {
+		return wr.err
+	}
 	for _, s := range statuses {
 		var ports []string
 		for k, v := range s.Ports {
