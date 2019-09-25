@@ -84,10 +84,7 @@ func (js JSONFormatter) FormatSingle(w io.Writer, m *Machine) error {
 
 func writeColumns(w io.Writer, cols []string) error {
 	_, err := fmt.Fprintln(w, strings.Join(cols, "\t"))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // Format will output to stdout in table format.
