@@ -23,6 +23,9 @@ var version = "git"
 
 func showVersion(cmd *cobra.Command, args []string) {
 	fmt.Println("version:", version)
+	if version == "git" {
+		return
+	}
 	release, err := release.FindLastRelease()
 	if err != nil {
 		fmt.Println("version: failed to check for new versions. You may want to check yourself at https://github.com/weaveworks/footloose/releases.")
