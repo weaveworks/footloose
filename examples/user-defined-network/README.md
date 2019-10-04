@@ -13,7 +13,7 @@ cluster:
 machines:
 - count: 3
   spec:
-    image: quay.io/footloose/centos7:0.6.1
+    image: quay.io/footloose/centos7:0.6.2
     name: node%d
     network: footloose-cluster
     portMappings:
