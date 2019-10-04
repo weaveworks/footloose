@@ -59,11 +59,7 @@ func (a *API) getMachine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	formatter, err := cluster.GetFormatter("json")
-	if err != nil {
-		sendError(w, http.StatusInternalServerError, err)
-		return
-	}
+	formatter := new(cluster.JSONFormatter)
 	if err := formatter.FormatSingle(w, m); err != nil {
 		sendError(w, http.StatusInternalServerError, err)
 		return

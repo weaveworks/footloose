@@ -11,6 +11,7 @@ const (
 	ipv4Length = 32
 )
 
+// NewRuntimeNetworks returns a slice of networks
 func NewRuntimeNetworks(networks map[string]*network.EndpointSettings) []*RuntimeNetwork {
 	rnList := make([]*RuntimeNetwork, 0, len(networks))
 	for key, value := range networks {
@@ -39,6 +40,7 @@ func NewIgniteRuntimeNetwork(status *ignite.Status) []*RuntimeNetwork {
 	return networks
 }
 
+// RuntimeNetwork contains information about the network
 type RuntimeNetwork struct {
 	// Name of the network
 	Name string `json:"name,omitempty"`
