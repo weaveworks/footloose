@@ -15,7 +15,8 @@ machines:
   spec:
     image: quay.io/footloose/centos7:0.6.2
     name: node%d
-    network: footloose-cluster
+    networks:
+    - footloose-cluster
     portMappings:
     - containerPort: 22
 ```
