@@ -341,6 +341,9 @@ func (c *Cluster) Create() error {
 	if err := c.ensureSSHKey(); err != nil {
 		return err
 	}
+	if err := docker.IsRunning(); err != nil {
+		return err
+	}
 	for _, template := range c.spec.Machines {
 		if _, err := docker.PullIfNotPresent(template.Spec.Image, 2); err != nil {
 			return err
@@ -384,11 +387,17 @@ func (c *Cluster) DeleteMachine(machine *Machine, i int) error {
 
 // Delete deletes the cluster.
 func (c *Cluster) Delete() error {
+	if err := docker.IsRunning(); err != nil {
+		return err
+	}
 	return c.forEachMachine(c.DeleteMachine)
 }
 
 // Inspect will generate information about running or stopped machines.
 func (c *Cluster) Inspect(hostnames []string) ([]*Machine, error) {
+	if err := docker.IsRunning(); err != nil {
+		return nil, err
+	}
 	machines, err := c.gatherMachines()
 	if err != nil {
 		return nil, err
@@ -510,6 +519,9 @@ func (c *Cluster) startMachine(machine *Machine, i int) error {
 
 // Start starts the machines in cluster.
 func (c *Cluster) Start(machineNames []string) error {
+	if err := docker.IsRunning(); err != nil {
+		return err
+	}
 	if len(machineNames) < 1 {
 		return c.forEachMachine(c.startMachine)
 	}
@@ -545,6 +557,9 @@ func (c *Cluster) stopMachine(machine *Machine, i int) error {
 
 // Stop stops the machines in cluster.
 func (c *Cluster) Stop(machineNames []string) error {
+	if err := docker.IsRunning(); err != nil {
+		return err
+	}
 	if len(machineNames) < 1 {
 		return c.forEachMachine(c.stopMachine)
 	}
