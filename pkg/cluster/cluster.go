@@ -115,12 +115,16 @@ func (c *Cluster) machine(spec *config.Machine, i int) *Machine {
 }
 
 func (c *Cluster) forEachMachine(do func(*Machine, int) error) error {
+	machineIndex := 0
 	for _, template := range c.spec.Machines {
 		for i := 0; i < template.Count; i++ {
+			// machine name indexed with i
 			machine := c.machine(&template.Spec, i)
-			if err := do(machine, i); err != nil {
+			// but to prevent port collision, we use machineIndex for the real machine creation
+			if err := do(machine, machineIndex); err != nil {
 				return err
 			}
+			machineIndex++
 		}
 	}
 	return nil
