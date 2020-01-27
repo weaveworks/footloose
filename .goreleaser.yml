@@ -4,7 +4,8 @@ before:
 builds:
 - env:
   - CGO_ENABLED=0
-archive:
+archives:
+- id: binary
   format: binary
   format_overrides:
     - goos: darwin
