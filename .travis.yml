@@ -12,6 +12,7 @@ services:
 
 before_script:
   - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.17.1
+  - curl -sfL https://install.goreleaser.com/github.com/goreleaser/goreleaser.sh | sh
 
 matrix:
   include:
@@ -22,6 +23,7 @@ matrix:
       - go test -timeout 0 -v .
       - go test -timeout 0 -v ./pkg/...
       - go test -timeout 0 -v ./tests
+      - ./bin/goreleaser check
 
 deploy:
 - provider: script
@@ -34,6 +36,6 @@ deploy:
     tags: true
 - provider: script
   skip_cleanup: true
-  script: curl -sL https://git.io/goreleaser | bash
+  script: ./bin/goreleaser release
   on:
     tags: true
