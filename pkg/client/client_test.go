@@ -25,7 +25,7 @@ func newEnv() *env {
 	server := httptest.NewUnstartedServer(nil)
 	baseURI := "http://" + server.Listener.Addr().String()
 	keyStore := cluster.NewKeyStore(".")
-	api := api.New(baseURI, keyStore)
+	api := api.New(baseURI, keyStore, false)
 	server.Config.Handler = api.Router()
 	server.Start()
 

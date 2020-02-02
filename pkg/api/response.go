@@ -9,6 +9,22 @@ func sendOK(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// DocsResponse returns basic API docs.
+type DocsResponse struct {
+	DOCS []byte `json:"docs"`
+}
+
+func sendResponse(w http.ResponseWriter, body []byte) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	resp := DocsResponse{
+		DOCS: body,
+	}
+
+	_ = json.NewEncoder(w).Encode(&resp)
+}
+
 // ErrorResponse is the response API entry points return when they encountered an error.
 type ErrorResponse struct {
 	Error string `json:"error"`
