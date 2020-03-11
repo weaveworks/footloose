@@ -266,7 +266,7 @@ If you have any questions, feedback, or problems with `footloose`:
 - Check out the [examples](examples).
 - Join the discussion
   - Invite yourself to the <a href="https://slack.weave.works/" target="_blank">Weave community</a> Slack.
-  - Ask a question on the [#general](https://weave-community.slack.com/messages/general/) Slack channel.
+  - Ask a question on the [#footloose](https://weave-community.slack.com/messages/footloose/) Slack channel.
   - Join the [Weave User Group](https://www.meetup.com/pro/Weave/) and get invited to online talks, hands-on training and meetups in your area.
 - [File an issue](https://github.com/weaveworks/footloose/issues/new).
 
