@@ -376,14 +376,14 @@ func (c *Cluster) DeleteMachine(machine *Machine, i int) error {
 			return err
 		}
 		cmd := exec.Command(
-			"docker", "rm",
+			"docker", "rm", "-v",
 			name,
 		)
 		return cmd.Run()
 	}
 	log.Infof("Deleting machine: %s ...", name)
 	cmd := exec.Command(
-		"docker", "rm",
+		"docker", "rm", "-v",
 		name,
 	)
 	return cmd.Run()
