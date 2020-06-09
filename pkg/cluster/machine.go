@@ -78,30 +78,58 @@ func (m *Machine) IsStarted() bool {
 }
 
 // HostPort returns the host port corresponding to the given container port.
-func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
-	// Use the cached version first.
+func (m *Machine) HostPort(containerPort int) (int, error) {
+	// Use the cached version first
 	if hostPort, ok := m.ports[containerPort]; ok {
 		return hostPort, nil
 	}
-	// retrieve the specific port mapping using docker inspect
-	lines, err := docker.Inspect(m.ContainerName(), fmt.Sprintf("{{(index (index .NetworkSettings.Ports \"%d/tcp\") 0).HostPort}}", containerPort))
-	if err != nil {
-		return -1, errors.Wrapf(err, "hostport: failed to inspect container: %v", lines)
-	}
-	if len(lines) != 1 {
-		return -1, errors.Errorf("hostport: should only be one line, got %d lines", len(lines))
+
+	var hostPort int
+
+	// Handle Ignite VMs
+	if m.IsIgnite() {
+		// Retrieve the machine details
+		vm, err := ignite.PopulateMachineDetails(m.name)
+		if err != nil {
+			return -1, errors.Wrap(err, "failed to populate VM details")
+		}
+
+		// Find the host port for the given VM port
+		var found = false
+		for _, p := range vm.Spec.Network.Ports {
+			if int(p.VMPort) == containerPort {
+				hostPort = int(p.HostPort)
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			return -1, fmt.Errorf("invalid VM port queried: %d", containerPort)
+		}
+	} else {
+		// retrieve the specific port mapping using docker inspect
+		lines, err := docker.Inspect(m.ContainerName(), fmt.Sprintf("{{(index (index .NetworkSettings.Ports \"%d/tcp\") 0).HostPort}}", containerPort))
+		if err != nil {
+			return -1, errors.Wrapf(err, "hostport: failed to inspect container: %v", lines)
+		}
+		if len(lines) != 1 {
+			return -1, errors.Errorf("hostport: should only be one line, got %d lines", len(lines))
+		}
+
+		port := strings.Replace(lines[0], "'", "", -1)
+		if hostPort, err = strconv.Atoi(port); err != nil {
+			return -1, errors.Wrap(err, "hostport: failed to parse string to int")
+		}
 	}
 
 	if m.ports == nil {
 		m.ports = make(map[int]int)
 	}
 
-	port := strings.Replace(lines[0], "'", "", -1)
-	m.ports[containerPort], err = strconv.Atoi(port)
-	if err != nil {
-		return -1, errors.Wrap(err, "hostport: failed to parse string to int")
-	}
-	return m.ports[containerPort], nil
+	// Cache the result
+	m.ports[containerPort] = hostPort
+	return hostPort, nil
 }
 
 func (m *Machine) networks() ([]*RuntimeNetwork, error) {
