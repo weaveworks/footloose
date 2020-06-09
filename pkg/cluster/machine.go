@@ -83,8 +83,8 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 	if hostPort, ok := m.ports[containerPort]; ok {
 		return hostPort, nil
 	}
-	// retrieve the specific port mapping using docker inspect
-	lines, err := docker.Inspect(m.ContainerName(), fmt.Sprintf("{{(index (index .NetworkSettings.Ports \"%d/tcp\") 0).HostPort}}", containerPort))
+	// retrieve the specific port mapping
+	lines, err := m.gethostport(containerPort)
 	if err != nil {
 		return -1, errors.Wrapf(err, "hostport: failed to inspect container: %v", lines)
 	}
@@ -103,6 +103,30 @@ func (m *Machine) HostPort(containerPort int) (hostPort int, err error) {
 	}
 	return m.ports[containerPort], nil
 }
+
+// gethostport will choose the correct backend method to return the hostport
+func (m *Machine) gethostport(containerPort int) (lines []string, err error) {
+
+	// Ignite
+	if m.IsIgnite() {
+		// Get the vm information
+		vm, err := ignite.PopulateMachineDetails(m.ContainerName())
+		if err != nil {
+			return nil, errors.Wrapf(err, "hostport: failed to inspect container")
+		}
+
+		// Assume that it is the first port in the array?
+		var p = vm.Spec.Network.Ports[0].HostPort
+		lines = []string{ strconv.Itoa( int(p) ) }
+
+		return lines, err
+
+	// Docker
+	} else {
+		return docker.Inspect(m.ContainerName(), fmt.Sprintf("{{(index (index .NetworkSettings.Ports \"%d/tcp\") 0).HostPort}}", containerPort))
+	}
+}
+
 
 func (m *Machine) networks() ([]*RuntimeNetwork, error) {
 	if len(m.runtimeNetworks) != 0 {
