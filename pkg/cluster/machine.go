@@ -240,5 +240,5 @@ func (m *Machine) IsIgnite() (b bool) {
 		igniteChecked = true
 	}
 
-	return
+	return b
 }
