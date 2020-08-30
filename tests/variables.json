@@ -6,6 +6,7 @@
     "ubuntu18.04",
     "ubuntu20.04",
     "debian10",
-    "clearlinux"
+    "clearlinux",
+    "photon3"
   ]
 }

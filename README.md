@@ -115,6 +115,7 @@ images are:
 - `quay.io/footloose/amazonlinux2`
 - `quay.io/footloose/debian10`
 - `quay.io/footloose/clearlinux`
+- `quay.io/footloose/photon3`
 
 For example:
 
