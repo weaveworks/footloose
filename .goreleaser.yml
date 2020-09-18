@@ -28,7 +28,7 @@ changelog:
     - '^test:'
 brews:
   -
-    github:
+    tap:
       owner: weaveworks
       name: homebrew-tap
     commit_author:
