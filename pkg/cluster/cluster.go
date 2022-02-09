@@ -294,7 +294,13 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 		"--tmpfs", "/run",
 		"--tmpfs", "/run/lock",
 		"--tmpfs", "/tmp:exec,mode=777",
-		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
+	}
+	if docker.CgroupVersion() == "2" {
+		runArgs = append(runArgs, "--cgroupns", "host",
+			"-v", "/sys/fs/cgroup:/sys/fs/cgroup:rw")
+
+	} else {
+		runArgs = append(runArgs, "-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro")
 	}
 
 	for _, volume := range machine.spec.Volumes {
