@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os/user"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -43,11 +42,11 @@ func ssh(cmd *cobra.Command, args []string) error {
 		node = items[1]
 	} else {
 		node = args[0]
-		user, err := user.Current()
+		machine, err := cluster.GetMachineByHostname(node)
 		if err != nil {
-			return errors.New("error in getting current user")
+			return fmt.Errorf("host not found: %s", node)
 		}
-		username = user.Username
+		username = machine.User()
 	}
 	return cluster.SSH(node, username, args[1:]...)
 }
