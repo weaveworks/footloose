@@ -25,6 +25,8 @@ type Machine struct {
 	hostname string
 	// container ip.
 	ip string
+	// container user.
+	user string
 
 	runtimeNetworks []*RuntimeNetwork
 	// Fields that are cached from the docker daemon.
@@ -50,6 +52,17 @@ func (m *Machine) ContainerName() string {
 // Hostname is the machine hostname.
 func (m *Machine) Hostname() string {
 	return m.hostname
+}
+
+// defaultUser is the default container user.
+const defaultUser = "root"
+
+// User gets the machine's OS user, defaults to root if not specified.
+func (m *Machine) User() string {
+	if m.user == "" {
+		return defaultUser
+	}
+	return m.user
 }
 
 // IsCreated returns if a machine is has been created. A created machine could

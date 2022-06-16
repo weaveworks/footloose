@@ -180,7 +180,7 @@ func (c *Cluster) ensureSSHKey() error {
 const initScript = `
 set -e
 rm -f /run/nologin
-sshdir=/root/.ssh
+sshdir=/%s/.ssh
 mkdir $sshdir; chmod 700 $sshdir
 touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 `
@@ -273,10 +273,10 @@ func (c *Cluster) CreateMachine(machine *Machine, i int) error {
 		}
 
 		// Initial provisioning.
-		if err := containerRunShell(name, initScript); err != nil {
+		if err := containerRunShell(name, f(initScript, machine.User())); err != nil {
 			return err
 		}
-		if err := copy(name, publicKey, "/root/.ssh/authorized_keys"); err != nil {
+		if err := copy(name, publicKey, f("/%s/.ssh/authorized_keys", machine.User())); err != nil {
 			return err
 		}
 	}
@@ -294,7 +294,7 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 		"--tmpfs", "/run",
 		"--tmpfs", "/run/lock",
 		"--tmpfs", "/tmp:exec,mode=777",
-		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
+		//"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
 	for _, volume := range machine.spec.Volumes {
@@ -624,6 +624,10 @@ func ssh(args []string) (bool, error) {
 		return true, err
 	}
 	return false, err
+}
+
+func (c *Cluster) GetMachineByHostname(hostname string) (*Machine, error) {
+	return c.machineFromHostname(hostname)
 }
 
 func (c *Cluster) machineFromHostname(hostname string) (*Machine, error) {
