@@ -181,7 +181,7 @@ const initScript = `
 set -e
 rm -f /run/nologin
 sshdir=/%s/.ssh
-mkdir $sshdir; chmod 700 $sshdir
+mkdir -p $sshdir; chmod 700 $sshdir
 touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
 `
 
