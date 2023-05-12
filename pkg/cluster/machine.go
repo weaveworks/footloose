@@ -26,6 +26,9 @@ type Machine struct {
 	// container ip.
 	ip string
 
+	// container user, defaults to "root".
+	user string `default:"root"` //for solveing issue #276
+
 	runtimeNetworks []*RuntimeNetwork
 	// Fields that are cached from the docker daemon.
 
@@ -45,6 +48,11 @@ func (m *Machine) ContainerName() string {
 		return cid
 	}
 	return m.name
+}
+
+// Hostname is the machine hostname.
+func (m *Machine) MachineUser() string { //for solveing issue #276
+	return m.user
 }
 
 // Hostname is the machine hostname.
