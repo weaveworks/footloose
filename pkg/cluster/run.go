@@ -38,7 +38,7 @@ func containerRun(nameOrID string, name string, args ...string) error {
 }
 
 func containerRunShell(nameOrID string, script string) error {
-	return containerRun(nameOrID, "/bin/bash", "-c", script)
+	return containerRun(nameOrID, "/bin/sh", "-c", script)
 }
 
 func copy(nameOrID string, content []byte, path string) error {
