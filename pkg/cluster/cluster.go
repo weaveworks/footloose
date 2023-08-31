@@ -180,9 +180,17 @@ func (c *Cluster) ensureSSHKey() error {
 const initScript = `
 set -e
 rm -f /run/nologin
-sshdir=/root/.ssh
-mkdir $sshdir; chmod 700 $sshdir
-touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
+u=%s
+if [[ "$u" == "root" ]]; then
+	sshdir=/root/.ssh
+	mkdir -p $sshdir; chmod 700 $sshdir
+	touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
+else
+	sshdir=/home/$u/.ssh
+	mkdir -p $sshdir; chmod 700 $sshdir
+	touch $sshdir/authorized_keys; chmod 600 $sshdir/authorized_keys
+	chown -R $u:$u /home/$u/
+fi
 `
 
 func (c *Cluster) publicKey(machine *Machine) ([]byte, error) {
@@ -273,10 +281,14 @@ func (c *Cluster) CreateMachine(machine *Machine, i int) error {
 		}
 
 		// Initial provisioning.
-		if err := containerRunShell(name, initScript); err != nil {
+		var keyPath = "/root/.ssh/authorized_keys"
+		if machine.User() != "root" {
+			keyPath = f("/home/%s/.ssh/authorized_keys", machine.User())
+		}
+		if err := containerRunShell(name, f(initScript, machine.User())); err != nil {
 			return err
 		}
-		if err := copy(name, publicKey, "/root/.ssh/authorized_keys"); err != nil {
+		if err := copy(name, publicKey, keyPath); err != nil {
 			return err
 		}
 	}
@@ -294,7 +306,7 @@ func (c *Cluster) createMachineRunArgs(machine *Machine, name string, i int) []s
 		"--tmpfs", "/run",
 		"--tmpfs", "/run/lock",
 		"--tmpfs", "/tmp:exec,mode=777",
-		"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
+		//"-v", "/sys/fs/cgroup:/sys/fs/cgroup:ro",
 	}
 
 	for _, volume := range machine.spec.Volumes {
@@ -592,11 +604,13 @@ func (f *matchFilter) Write(p []byte) (n int, err error) {
 }
 
 // Matches:
-//   ssh_exchange_identification: read: Connection reset by peer
+//
+//	ssh_exchange_identification: read: Connection reset by peer
 var connectRefused = regexp.MustCompile("^ssh_exchange_identification: ")
 
 // Matches:
-//   Warning:Permanently added '172.17.0.2' (ECDSA) to the list of known hosts
+//
+//	Warning:Permanently added '172.17.0.2' (ECDSA) to the list of known hosts
 var knownHosts = regexp.MustCompile("^Warning: Permanently added .* to the list of known hosts.")
 
 // ssh returns true if the command should be tried again.
@@ -624,6 +638,10 @@ func ssh(args []string) (bool, error) {
 		return true, err
 	}
 	return false, err
+}
+
+func (c *Cluster) GetMachineByHostname(hostname string) (*Machine, error) {
+	return c.machineFromHostname(hostname)
 }
 
 func (c *Cluster) machineFromHostname(hostname string) (*Machine, error) {

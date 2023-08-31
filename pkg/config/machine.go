@@ -52,6 +52,8 @@ type Machine struct {
 	Name string `json:"name"`
 	// Image is the container image to use for this machine.
 	Image string `json:"image"`
+	// User is the machine user used for "footloose ssh" login.
+	User string `json:"user,omitempty"`
 	// Privileged controls whether to start the Machine as a privileged container
 	// or not. Defaults to false.
 	Privileged bool `json:"privileged,omitempty"`

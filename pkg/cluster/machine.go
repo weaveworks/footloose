@@ -52,6 +52,17 @@ func (m *Machine) Hostname() string {
 	return m.hostname
 }
 
+// defaultUser is the default container user.
+const defaultUser = "root"
+
+// User gets the machine's OS user, defaults to root if not specified.
+func (m *Machine) User() string {
+	if m.spec.User == "" {
+		return defaultUser
+	}
+	return m.spec.User
+}
+
 // IsCreated returns if a machine is has been created. A created machine could
 // either be running or stopped.
 func (m *Machine) IsCreated() bool {
