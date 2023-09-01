@@ -45,6 +45,7 @@ func ssh(cmd *cobra.Command, args []string) error {
 		node = args[0]
 		user, err := user.Current()
 		if err != nil {
+			user = cluster.machine.MachineUser()//for solveing issue #276
 			return errors.New("error in getting current user")
 		}
 		username = user.Username
